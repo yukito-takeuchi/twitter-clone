@@ -2,19 +2,23 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config";
 import { query } from "./config/database";
+import { errorHandler } from "./middlewares/errorHandler";
+
+// Import routes
+import userRoutes from "./routes/users";
 
 const app = express();
 const PORT = config.port;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
+// Health check endpoints
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
-// Database health check endpoint
 app.get("/health/db", async (req, res) => {
   try {
     const result = await query("SELECT NOW() as current_time, version() as db_version");
@@ -35,6 +39,12 @@ app.get("/health/db", async (req, res) => {
     });
   }
 });
+
+// API Routes
+app.use("/api/users", userRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

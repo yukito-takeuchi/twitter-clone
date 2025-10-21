@@ -28,6 +28,7 @@ import type { PostWithStats } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
+import ImageModal from '@/components/common/ImageModal';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -40,6 +41,8 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (postId) {
@@ -92,6 +95,23 @@ export default function PostDetailPage() {
       minute: '2-digit',
     });
   };
+
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageModalOpen(true);
+  };
+
+  const getImageUrl = (url: string) => {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+  };
+
+  // Parse image_url - could be a single URL or comma-separated URLs
+  const images = post?.image_url
+    ? post.image_url.split(',').map((url) => url.trim())
+    : [];
 
   if (loading) {
     return (
@@ -176,6 +196,53 @@ export default function PostDetailPage() {
         >
           {post.content}
         </Typography>
+
+        {/* Images */}
+        {images.length > 0 && (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: images.length === 1 ? '1fr' : '1fr 1fr',
+              gap: 0.5,
+              mb: 2,
+              borderRadius: 2,
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {images.map((image, index) => (
+              <Box
+                key={index}
+                onClick={() => handleImageClick(index)}
+                sx={{
+                  position: 'relative',
+                  paddingTop: images.length === 1 ? '56.25%' : '100%',
+                  bgcolor: 'action.hover',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    opacity: 0.9,
+                  },
+                }}
+              >
+                <Box
+                  component="img"
+                  src={getImageUrl(image)}
+                  alt={`Image ${index + 1}`}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
 
         {/* Timestamp */}
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
@@ -330,6 +397,16 @@ export default function PostDetailPage() {
           </Typography>
         </Box>
       </Box>
+
+      {/* Image Modal */}
+      {images.length > 0 && (
+        <ImageModal
+          images={images}
+          initialIndex={selectedImageIndex}
+          open={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+        />
+      )}
     </MainLayout>
   );
 }

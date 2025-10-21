@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { config } from "./config";
 import { query } from "./config/database";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -10,6 +11,7 @@ import profileRoutes from "./routes/profiles";
 import postRoutes from "./routes/posts";
 import likeRoutes from "./routes/likes";
 import followRoutes from "./routes/follows";
+import imageRoutes from "./routes/images";
 
 const app = express();
 const PORT = config.port;
@@ -17,6 +19,9 @@ const PORT = config.port;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health check endpoints
 app.get("/health", (req, res) => {
@@ -50,6 +55,7 @@ app.use("/api/profiles", profileRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/follows", followRoutes);
+app.use("/api/images", imageRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

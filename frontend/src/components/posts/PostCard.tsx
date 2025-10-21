@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
+import ImageModal from '@/components/common/ImageModal';
 
 interface PostCardProps {
   post: PostWithStats;
@@ -30,6 +31,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.is_liked_by_current_user || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -71,12 +74,31 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       target.closest('button') ||
       target.closest('a') ||
       target.tagName === 'BUTTON' ||
-      target.tagName === 'A'
+      target.tagName === 'A' ||
+      target.tagName === 'IMG'
     ) {
       return;
     }
     router.push(`/post/${post.id}`);
   };
+
+  const handleImageClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setSelectedImageIndex(index);
+    setImageModalOpen(true);
+  };
+
+  const getImageUrl = (url: string) => {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+  };
+
+  // Parse image_url - could be a single URL or comma-separated URLs
+  const images = post.image_url
+    ? post.image_url.split(',').map((url) => url.trim())
+    : [];
 
   return (
     <Paper
@@ -146,6 +168,53 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           >
             {post.content}
           </Typography>
+
+          {/* Images */}
+          {images.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: images.length === 1 ? '1fr' : '1fr 1fr',
+                gap: 0.5,
+                mt: 2,
+                borderRadius: 2,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              {images.map((image, index) => (
+                <Box
+                  key={index}
+                  onClick={(e) => handleImageClick(e, index)}
+                  sx={{
+                    position: 'relative',
+                    paddingTop: images.length === 1 ? '56.25%' : '100%',
+                    bgcolor: 'action.hover',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={getImageUrl(image)}
+                    alt={`Image ${index + 1}`}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
 
           {/* Action Buttons */}
           <Box
@@ -274,6 +343,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </Box>
         </Box>
       </Box>
+
+      {/* Image Modal */}
+      {images.length > 0 && (
+        <ImageModal
+          images={images}
+          initialIndex={selectedImageIndex}
+          open={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+        />
+      )}
     </Paper>
   );
 }

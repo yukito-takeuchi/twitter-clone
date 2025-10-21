@@ -139,4 +139,26 @@ export const followApi = {
   },
 };
 
+// Image API
+export const imageApi = {
+  uploadImages: async (files: File[], userId: string): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+    formData.append('user_id', userId);
+
+    const response = await api.post<ApiResponse<{ urls: string[] }>>(
+      '/images/upload-multiple',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data!.urls;
+  },
+};
+
 export default api;

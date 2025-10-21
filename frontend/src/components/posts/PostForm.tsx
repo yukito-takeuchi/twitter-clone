@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Box, TextField, Button, Avatar, Paper } from '@mui/material';
+import { useState, useRef } from 'react';
+import { Box, TextField, Button, Avatar, Paper, IconButton } from '@mui/material';
+import { Image as ImageIcon, Close } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { postApi } from '@/lib/api';
+import { postApi, imageApi } from '@/lib/api';
 
 interface PostFormProps {
   onPostCreated?: () => void;
@@ -11,26 +12,60 @@ interface PostFormProps {
 
 export default function PostForm({ onPostCreated }: PostFormProps) {
   const [content, setContent] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + selectedFiles.length > 4) {
+      alert('画像は最大4枚までです');
+      return;
+    }
+
+    const newFiles = files.slice(0, 4 - selectedFiles.length);
+    setSelectedFiles([...selectedFiles, ...newFiles]);
+
+    // Create previews
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !user) return;
 
-    console.log('[PostForm] Creating post with user:', {
-      user_id: user.id,
-      firebase_uid: user.firebase_uid,
-      username: user.username,
-    });
-
     setLoading(true);
     try {
+      let imageUrl: string | undefined;
+
+      // Upload images if any
+      if (selectedFiles.length > 0) {
+        const urls = await imageApi.uploadImages(selectedFiles, user.id);
+        imageUrl = urls[0]; // For now, use first image URL
+      }
+
       await postApi.create({
         user_id: user.id,
         content: content.trim(),
+        image_url: imageUrl,
       });
+
       setContent('');
+      setSelectedFiles([]);
+      setPreviews([]);
       onPostCreated?.();
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -67,6 +102,65 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
               sx={{ fontSize: '20px' }}
               inputProps={{ maxLength: 280 }}
             />
+
+            {/* Image Previews */}
+            {previews.length > 0 && (
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: previews.length === 1 ? '1fr' : '1fr 1fr',
+                  gap: 1,
+                  mt: 2,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {previews.map((preview, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      position: 'relative',
+                      paddingTop: '100%',
+                      bgcolor: 'action.hover',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <IconButton
+                      onClick={() => handleRemoveImage(index)}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'rgba(0, 0, 0, 0.7)',
+                        color: 'white',
+                        '&:hover': {
+                          bgcolor: 'rgba(0, 0, 0, 0.9)',
+                        },
+                        width: 32,
+                        height: 32,
+                      }}
+                    >
+                      <Close fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
             <Box
               sx={{
                 display: 'flex',
@@ -75,8 +169,25 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                 mt: 2,
               }}
             >
-              <Box sx={{ color: 'text.secondary', fontSize: '14px' }}>
-                {content.length}/280
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
+                <IconButton
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={selectedFiles.length >= 4}
+                  sx={{ color: 'secondary.main' }}
+                >
+                  <ImageIcon />
+                </IconButton>
+                <Box sx={{ color: 'text.secondary', fontSize: '14px' }}>
+                  {content.length}/280
+                </Box>
               </Box>
               <Button
                 type="submit"

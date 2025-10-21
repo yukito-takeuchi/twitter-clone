@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Box, Avatar, Typography, IconButton, Paper } from '@mui/material';
 import {
   ChatBubbleOutline,
@@ -16,6 +17,8 @@ import { likeApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Link from 'next/link';
+import ImageModal from '@/components/common/ImageModal';
 
 interface PostCardProps {
   post: PostWithStats;
@@ -24,9 +27,12 @@ interface PostCardProps {
 
 export default function PostCard({ post, onUpdate }: PostCardProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(post.is_liked_by_current_user || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -61,9 +67,43 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('a') ||
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'A' ||
+      target.tagName === 'IMG'
+    ) {
+      return;
+    }
+    router.push(`/post/${post.id}`);
+  };
+
+  const handleImageClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setSelectedImageIndex(index);
+    setImageModalOpen(true);
+  };
+
+  const getImageUrl = (url: string) => {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+  };
+
+  // Parse image_url - could be a single URL or comma-separated URLs
+  const images = post.image_url
+    ? post.image_url.split(',').map((url) => url.trim())
+    : [];
+
   return (
     <Paper
       elevation={0}
+      onClick={handleCardClick}
       sx={{
         p: 2,
         borderBottom: '1px solid',
@@ -77,23 +117,37 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     >
       <Box sx={{ display: 'flex', gap: 2 }}>
         {/* Avatar */}
-        <Avatar sx={{ width: 40, height: 40 }}>
-          {post.display_name?.[0] || post.username?.[0] || '?'}
-        </Avatar>
+        <Link href={`/profile/${post.username}`} onClick={(e) => e.stopPropagation()}>
+          <Avatar sx={{ width: 40, height: 40, cursor: 'pointer' }}>
+            {post.display_name?.[0] || post.username?.[0] || '?'}
+          </Avatar>
+        </Link>
 
         {/* Content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'bold', color: 'text.primary' }}
+            <Link
+              href={`/profile/${post.username}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ textDecoration: 'none', color: 'inherit' }}
             >
-              {post.display_name || post.username}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              @{post.username}
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 'bold', color: 'text.primary', '&:hover': { textDecoration: 'underline' } }}
+              >
+                {post.display_name || post.username}
+              </Typography>
+            </Link>
+            <Link
+              href={`/profile/${post.username}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <Typography variant="body2" sx={{ color: 'text.secondary', '&:hover': { textDecoration: 'underline' } }}>
+                @{post.username}
+              </Typography>
+            </Link>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               ·
             </Typography>
@@ -114,6 +168,53 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           >
             {post.content}
           </Typography>
+
+          {/* Images */}
+          {images.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: images.length === 1 ? '1fr' : '1fr 1fr',
+                gap: 0.5,
+                mt: 2,
+                borderRadius: 2,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              {images.map((image, index) => (
+                <Box
+                  key={index}
+                  onClick={(e) => handleImageClick(e, index)}
+                  sx={{
+                    position: 'relative',
+                    paddingTop: images.length === 1 ? '56.25%' : '100%',
+                    bgcolor: 'action.hover',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={getImageUrl(image)}
+                    alt={`Image ${index + 1}`}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
 
           {/* Action Buttons */}
           <Box
@@ -242,6 +343,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </Box>
         </Box>
       </Box>
+
+      {/* Image Modal */}
+      {images.length > 0 && (
+        <ImageModal
+          images={images}
+          initialIndex={selectedImageIndex}
+          open={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+        />
+      )}
     </Paper>
   );
 }

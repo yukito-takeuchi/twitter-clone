@@ -48,6 +48,11 @@ export const userApi = {
     );
     return response.data.data!;
   },
+
+  update: async (userId: string, data: { display_name?: string }): Promise<User> => {
+    const response = await api.put<ApiResponse<{ user: User }>>(`/users/${userId}`, data);
+    return response.data.data!.user;
+  },
 };
 
 // Profile API
@@ -136,6 +141,28 @@ export const followApi = {
       `/follows/check/${followerId}/${followingId}`
     );
     return response.data.data!.is_following;
+  },
+};
+
+// Image API
+export const imageApi = {
+  uploadImages: async (files: File[], userId: string): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+    formData.append('user_id', userId);
+
+    const response = await api.post<ApiResponse<{ urls: string[] }>>(
+      '/images/upload-multiple',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data!.urls;
   },
 };
 

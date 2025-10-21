@@ -1,51 +1,49 @@
 'use client';
 
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, IconButton, Divider } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Button } from '@mui/material';
 import {
   Home,
   Search,
   Notifications,
+  Mail,
+  Bookmark,
   Person,
-  Logout,
-  LightMode,
-  DarkMode,
+  MoreHoriz,
+  Edit,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
 
 export default function LeftSidebar() {
   const { user, logout } = useAuth();
-  const { mode, toggleTheme } = useTheme();
   const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
 
   const navItems = [
     { icon: <Home fontSize="large" />, label: 'ホーム', path: '/', active: true },
     { icon: <Search fontSize="large" />, label: '検索', path: '#', active: false },
     { icon: <Notifications fontSize="large" />, label: '通知', path: '#', active: false },
+    { icon: <Mail fontSize="large" />, label: 'メッセージ', path: '#', active: false },
+    { icon: <Bookmark fontSize="large" />, label: 'ブックマーク', path: '#', active: false },
     {
       icon: <Person fontSize="large" />,
       label: 'プロフィール',
       path: user ? `/profile/${user.username}` : '#',
       active: !!user
     },
+    { icon: <MoreHoriz fontSize="large" />, label: 'もっと見る', path: '#', active: false },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   return (
     <Box
       sx={{
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px solid',
-        borderColor: 'divider',
         px: 2,
         py: 1,
       }}
@@ -65,6 +63,7 @@ export default function LeftSidebar() {
             },
             cursor: 'pointer',
           }}
+          onClick={() => router.push('/')}
         >
           <Box
             component="span"
@@ -82,13 +81,14 @@ export default function LeftSidebar() {
       {/* Navigation */}
       <List sx={{ flex: 1 }}>
         {navItems.map((item) => (
-          <ListItem key={item.label} disablePadding sx={{ mb: 1 }}>
+          <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
               onClick={() => item.active && router.push(item.path)}
               disabled={!item.active}
               sx={{
                 borderRadius: '9999px',
                 py: 1.5,
+                px: 2,
                 '&:hover': {
                   bgcolor: 'action.hover',
                 },
@@ -101,7 +101,7 @@ export default function LeftSidebar() {
                 primary={item.label}
                 primaryTypographyProps={{
                   fontSize: '20px',
-                  fontWeight: item.active ? 'bold' : 'normal',
+                  fontWeight: item.path === '/' || item.path.includes('/profile') ? 'bold' : 'normal',
                 }}
               />
             </ListItemButton>
@@ -109,55 +109,75 @@ export default function LeftSidebar() {
         ))}
       </List>
 
-      <Divider sx={{ my: 1 }} />
-
-      {/* Dark Mode Toggle */}
-      <ListItem disablePadding sx={{ mb: 1 }}>
-        <ListItemButton
-          onClick={toggleTheme}
+      {/* Post Button */}
+      <Box sx={{ px: 2, mb: 2 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={() => router.push('/')}
           sx={{
             borderRadius: '9999px',
             py: 1.5,
+            fontSize: '17px',
+            fontWeight: 'bold',
+            textTransform: 'none',
+            bgcolor: 'rgb(29, 155, 240)',
             '&:hover': {
-              bgcolor: 'action.hover',
+              bgcolor: 'rgb(26, 140, 216)',
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 56, color: 'text.primary' }}>
-            {mode === 'dark' ? <LightMode fontSize="large" /> : <DarkMode fontSize="large" />}
-          </ListItemIcon>
-          <ListItemText
-            primary={mode === 'dark' ? 'ライトモード' : 'ダークモード'}
-            primaryTypographyProps={{
-              fontSize: '20px',
-            }}
-          />
-        </ListItemButton>
-      </ListItem>
+          ポスト
+        </Button>
+      </Box>
 
-      {/* Logout */}
-      <ListItem disablePadding sx={{ mb: 2 }}>
-        <ListItemButton
+      {/* User Info */}
+      {user && (
+        <Box
           onClick={handleLogout}
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            p: 1.5,
             borderRadius: '9999px',
-            py: 1.5,
+            cursor: 'pointer',
+            mb: 1,
             '&:hover': {
               bgcolor: 'action.hover',
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 56, color: 'text.primary' }}>
-            <Logout fontSize="large" />
-          </ListItemIcon>
-          <ListItemText
-            primary="ログアウト"
-            primaryTypographyProps={{
-              fontSize: '20px',
-            }}
-          />
-        </ListItemButton>
-      </ListItem>
+          <Avatar sx={{ width: 40, height: 40 }}>
+            {user.display_name?.[0] || user.username[0]}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {user.display_name || user.username}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              @{user.username}
+            </Typography>
+          </Box>
+          <MoreHoriz sx={{ color: 'text.primary' }} />
+        </Box>
+      )}
     </Box>
   );
 }

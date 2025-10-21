@@ -27,11 +27,13 @@ export default function HomePage() {
 
     try {
       setLoading(true);
-      const response = await postApi.getTimeline(user.id);
-      setPosts(response.posts);
+      setError('');
+      const posts = await postApi.getTimeline(user.id);
+      setPosts(posts || []);
     } catch (err: any) {
       console.error('Failed to fetch posts:', err);
       setError('投稿の取得に失敗しました');
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,7 @@ export default function HomePage() {
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="error">{error}</Typography>
           </Box>
-        ) : posts.length === 0 ? (
+        ) : !posts || posts.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" sx={{ color: 'text.secondary' }}>
               投稿がありません

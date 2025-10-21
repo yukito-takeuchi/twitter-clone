@@ -35,6 +35,13 @@ export const userApi = {
     return response.data.data!;
   },
 
+  getByFirebaseUid: async (firebaseUid: string): Promise<{ user: User; profile: Profile }> => {
+    const response = await api.get<ApiResponse<{ user: User; profile: Profile }>>(
+      `/users/firebase/${firebaseUid}`
+    );
+    return response.data.data!;
+  },
+
   getByUsername: async (username: string): Promise<{ user: User; profile: Profile }> => {
     const response = await api.get<ApiResponse<{ user: User; profile: Profile }>>(
       `/users/username/${username}`
@@ -98,12 +105,12 @@ export const postApi = {
 
 // Like API
 export const likeApi = {
-  like: async (userId: string, postId: string): Promise<void> => {
-    await api.post('/likes', { user_id: userId, post_id: postId });
+  like: async (data: { user_id: string; post_id: string }): Promise<void> => {
+    await api.post('/likes', data);
   },
 
-  unlike: async (userId: string, postId: string): Promise<void> => {
-    await api.delete(`/likes/${userId}/${postId}`);
+  unlike: async (postId: string, userId: string): Promise<void> => {
+    await api.delete(`/likes/${postId}/${userId}`);
   },
 
   checkIfLiked: async (userId: string, postId: string): Promise<boolean> => {

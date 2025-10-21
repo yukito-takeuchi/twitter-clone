@@ -17,6 +17,9 @@ router.get("/", validatePagination, userController.getAllUsers);
 // Search users
 router.get("/search", validatePagination, userController.searchUsers);
 
+// Get user by Firebase UID
+router.get("/firebase/:firebase_uid", userController.getUserByFirebaseUid);
+
 // Get user by username
 router.get("/username/:username", userController.getUserByUsername);
 

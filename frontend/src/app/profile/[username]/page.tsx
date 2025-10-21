@@ -16,6 +16,10 @@ import {
   ArrowBack,
   CalendarToday,
   Link as LinkIcon,
+  LocationOn,
+  NotificationsOutlined,
+  MoreHoriz,
+  CakeOutlined,
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
@@ -202,36 +206,70 @@ export default function ProfilePage() {
               (user.display_name?.[0] || user.username[0])}
           </Avatar>
 
-          {isOwnProfile ? (
-            <Button
-              variant="outlined"
-              onClick={() => setEditDialogOpen(true)}
-              sx={{
-                mt: 1,
-                borderRadius: "9999px",
-                textTransform: "none",
-                fontWeight: "bold",
-                borderColor: "divider",
-                color: "text.primary",
-              }}
-            >
-              プロフィールを編集
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              sx={{
-                mt: 1,
-                borderRadius: "9999px",
-                textTransform: "none",
-                fontWeight: "bold",
-              }}
-            >
-              {isFollowing ? "フォロー中" : "フォロー"}
-            </Button>
-          )}
+          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+            {!isOwnProfile && (
+              <>
+                <IconButton
+                  disabled
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    width: 36,
+                    height: 36,
+                  }}
+                >
+                  <NotificationsOutlined fontSize="small" />
+                </IconButton>
+                <IconButton
+                  disabled
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    width: 36,
+                    height: 36,
+                  }}
+                >
+                  <MoreHoriz fontSize="small" />
+                </IconButton>
+              </>
+            )}
+            {isOwnProfile ? (
+              <Button
+                variant="outlined"
+                onClick={() => setEditDialogOpen(true)}
+                sx={{
+                  borderRadius: "9999px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  borderColor: "divider",
+                  color: "text.primary",
+                  px: 2,
+                }}
+              >
+                プロフィールを編集
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                sx={{
+                  borderRadius: "9999px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  bgcolor: 'text.primary',
+                  color: 'background.default',
+                  '&:hover': {
+                    bgcolor: 'text.primary',
+                    opacity: 0.9,
+                  },
+                  px: 2,
+                }}
+              >
+                {isFollowing ? "フォロー中" : "フォロー"}
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {/* User Info */}
@@ -255,8 +293,9 @@ export default function ProfilePage() {
         <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
           {profile.location && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <LocationOn fontSize="small" sx={{ color: "text.secondary" }} />
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                📍 {profile.location}
+                {profile.location}
               </Typography>
             </Box>
           )}
@@ -265,9 +304,32 @@ export default function ProfilePage() {
               <LinkIcon fontSize="small" sx={{ color: "text.secondary" }} />
               <Typography
                 variant="body2"
-                sx={{ color: "secondary.main", cursor: "pointer" }}
+                component="a"
+                href={profile.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "rgb(29, 155, 240)",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  }
+                }}
               >
                 {profile.website}
+              </Typography>
+            </Box>
+          )}
+          {profile.birth_date && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <CakeOutlined fontSize="small" sx={{ color: "text.secondary" }} />
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {new Date(profile.birth_date).toLocaleDateString("ja-JP", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </Typography>
             </Box>
           )}
@@ -278,7 +340,7 @@ export default function ProfilePage() {
                 year: "numeric",
                 month: "long",
               })}
-              に登録
+              から利用しています
             </Typography>
           </Box>
         </Box>

@@ -51,7 +51,70 @@ export default function RightSidebar() {
         />
       </Box>
 
-      {/* Suggested Users (上に配置) */}
+      {/* What's Happening (上に配置) */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+          mb: 2,
+        }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px', mb: 2 }}>
+            いまどうしてる？
+          </Typography>
+
+          {trendingTopics.map((trend, index) => (
+            <Box
+              key={index}
+              sx={{
+                py: 1.5,
+                px: 1,
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+                borderRadius: 1,
+                cursor: 'pointer',
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {trend.category} · トレンド
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 0.5 }}>
+                    {trend.topic}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                    {trend.posts} ポスト
+                  </Typography>
+                </Box>
+                <MoreHoriz sx={{ color: 'text.secondary', fontSize: '20px' }} />
+              </Box>
+            </Box>
+          ))}
+        </Box>
+
+        <Box
+          sx={{
+            p: 2,
+            pt: 0,
+            cursor: 'pointer',
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
+        >
+          <Typography variant="body2" sx={{ color: 'rgb(29, 155, 240)' }}>
+            さらに表示
+          </Typography>
+        </Box>
+      </Paper>
+
+      {/* Suggested Users (下に配置) */}
       <Paper
         elevation={0}
         sx={{
@@ -112,69 +175,6 @@ export default function RightSidebar() {
               >
                 フォロー
               </Button>
-            </Box>
-          ))}
-        </Box>
-
-        <Box
-          sx={{
-            p: 2,
-            pt: 0,
-            cursor: 'pointer',
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
-          }}
-        >
-          <Typography variant="body2" sx={{ color: 'rgb(29, 155, 240)' }}>
-            さらに表示
-          </Typography>
-        </Box>
-      </Paper>
-
-      {/* What's Happening (下に配置) */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: 'divider',
-          overflow: 'hidden',
-          mb: 2,
-        }}
-      >
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px', mb: 2 }}>
-            いまどうしてる？
-          </Typography>
-
-          {trendingTopics.map((trend, index) => (
-            <Box
-              key={index}
-              sx={{
-                py: 1.5,
-                px: 1,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-                borderRadius: 1,
-                cursor: 'pointer',
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {trend.category} · トレンド
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 0.5 }}>
-                    {trend.topic}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                    {trend.posts} ポスト
-                  </Typography>
-                </Box>
-                <MoreHoriz sx={{ color: 'text.secondary', fontSize: '20px' }} />
-              </Box>
             </Box>
           ))}
         </Box>

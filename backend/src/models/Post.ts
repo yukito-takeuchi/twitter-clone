@@ -86,7 +86,7 @@ export class PostModel {
     return result.rows;
   }
 
-  // Get timeline posts (posts from followed users)
+  // Get timeline posts (user's own posts + posts from followed users)
   static async getTimeline(
     userId: string,
     limit: number = 20,
@@ -94,8 +94,10 @@ export class PostModel {
   ): Promise<PostWithStats[]> {
     const result = await query(
       `SELECT p.* FROM posts_with_stats p
-       INNER JOIN follows f ON p.user_id = f.following_id
-       WHERE f.follower_id = $1
+       WHERE p.user_id = $1
+          OR p.user_id IN (
+            SELECT following_id FROM follows WHERE follower_id = $1
+          )
        ORDER BY p.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset]

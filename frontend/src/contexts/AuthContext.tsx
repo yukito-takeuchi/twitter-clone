@@ -44,6 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           // Get user data from backend using Firebase UID
           const userData = await userApi.getByFirebaseUid(firebaseUser.uid);
+          console.log('[AuthContext] User data fetched:', {
+            id: userData.user.id,
+            firebase_uid: userData.user.firebase_uid,
+            username: userData.user.username,
+          });
           setUser(userData.user);
         } catch (error) {
           console.error('Failed to fetch user data:', error);
@@ -72,6 +77,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       display_name: displayName,
     });
 
+    console.log('[AuthContext] User created:', {
+      id: user.id,
+      firebase_uid: user.firebase_uid,
+      username: user.username,
+    });
     setUser(user);
   };
 
@@ -81,6 +91,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Fetch user data from backend using Firebase UID
     const userData = await userApi.getByFirebaseUid(firebaseUser.uid);
+    console.log('[AuthContext] User logged in:', {
+      id: userData.user.id,
+      firebase_uid: userData.user.firebase_uid,
+      username: userData.user.username,
+    });
     setUser(userData.user);
   };
 

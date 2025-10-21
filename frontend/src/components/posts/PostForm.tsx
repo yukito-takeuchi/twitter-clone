@@ -18,6 +18,12 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     e.preventDefault();
     if (!content.trim() || !user) return;
 
+    console.log('[PostForm] Creating post with user:', {
+      user_id: user.id,
+      firebase_uid: user.firebase_uid,
+      username: user.username,
+    });
+
     setLoading(true);
     try {
       await postApi.create({

@@ -1,0 +1,335 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import {
+  Box,
+  Avatar,
+  Typography,
+  IconButton,
+  CircularProgress,
+  Divider,
+  TextField,
+  Button,
+} from '@mui/material';
+import {
+  ArrowBack,
+  ChatBubbleOutline,
+  RepeatOutlined,
+  FavoriteBorder,
+  Favorite,
+  Share,
+  BarChart,
+} from '@mui/icons-material';
+import { useAuth } from '@/contexts/AuthContext';
+import MainLayout from '@/components/layout/MainLayout';
+import { postApi, likeApi } from '@/lib/api';
+import type { PostWithStats } from '@/types';
+import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import Link from 'next/link';
+
+export default function PostDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const postId = params.id as string;
+  const { user } = useAuth();
+
+  const [post, setPost] = useState<PostWithStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiking, setIsLiking] = useState(false);
+
+  useEffect(() => {
+    if (postId) {
+      fetchPost();
+    }
+  }, [postId]);
+
+  const fetchPost = async () => {
+    try {
+      setLoading(true);
+      const postData = await postApi.getById(postId);
+      setPost(postData);
+      setIsLiked(postData.is_liked_by_current_user || false);
+      setLikeCount(postData.like_count || 0);
+    } catch (error) {
+      console.error('Failed to fetch post:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user || !post || isLiking) return;
+
+    setIsLiking(true);
+    try {
+      if (isLiked) {
+        await likeApi.unlike(post.id, user.id);
+        setIsLiked(false);
+        setLikeCount((prev) => prev - 1);
+      } else {
+        await likeApi.like({ user_id: user.id, post_id: post.id });
+        setIsLiked(true);
+        setLikeCount((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      </MainLayout>
+    );
+  }
+
+  if (!post) {
+    return (
+      <MainLayout>
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Typography>投稿が見つかりません</Typography>
+        </Box>
+      </MainLayout>
+    );
+  }
+
+  return (
+    <MainLayout>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          bgcolor: (theme) =>
+            theme.palette.mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(0, 0, 0, 0.8)',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 2 }}>
+          <IconButton onClick={() => router.back()}>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            ポスト
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Post Content */}
+      <Box sx={{ p: 2 }}>
+        {/* User Info */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Link href={`/profile/${post.username}`} style={{ textDecoration: 'none' }}>
+            <Avatar sx={{ width: 48, height: 48, cursor: 'pointer' }}>
+              {post.display_name?.[0] || post.username?.[0] || '?'}
+            </Avatar>
+          </Link>
+          <Box>
+            <Link
+              href={`/profile/${post.username}`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <Typography variant="body1" sx={{ fontWeight: 'bold', '&:hover': { textDecoration: 'underline' } }}>
+                {post.display_name || post.username}
+              </Typography>
+            </Link>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              @{post.username}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Content */}
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            lineHeight: 1.5,
+          }}
+        >
+          {post.content}
+        </Typography>
+
+        {/* Timestamp */}
+        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+          {formatTime(post.created_at)}
+        </Typography>
+
+        <Divider />
+
+        {/* Stats */}
+        <Box sx={{ display: 'flex', gap: 3, py: 2 }}>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {post.reply_count}
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              返信
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {post.retweet_count}
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              リポスト
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {likeCount}
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              いいね
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {post.view_count}
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              表示
+            </Typography>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        {/* Action Buttons */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            py: 1,
+          }}
+        >
+          <IconButton
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(29, 155, 240, 0.1)',
+                color: '#1D9BF0',
+              },
+            }}
+          >
+            <ChatBubbleOutline />
+          </IconButton>
+
+          <IconButton
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(0, 186, 124, 0.1)',
+                color: '#00BA7C',
+              },
+            }}
+          >
+            <RepeatOutlined />
+          </IconButton>
+
+          <IconButton
+            onClick={handleLike}
+            disabled={!user || isLiking}
+            sx={{
+              color: isLiked ? '#F91880' : 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(249, 24, 128, 0.1)',
+                color: '#F91880',
+              },
+            }}
+          >
+            {isLiked ? <Favorite /> : <FavoriteBorder />}
+          </IconButton>
+
+          <IconButton
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(29, 155, 240, 0.1)',
+                color: '#1D9BF0',
+              },
+            }}
+          >
+            <BarChart />
+          </IconButton>
+
+          <IconButton
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(29, 155, 240, 0.1)',
+                color: '#1D9BF0',
+              },
+            }}
+          >
+            <Share />
+          </IconButton>
+        </Box>
+
+        <Divider />
+
+        {/* Reply Form (Design Only) */}
+        {user && (
+          <Box sx={{ py: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Avatar sx={{ width: 40, height: 40 }}>
+                {user.display_name?.[0] || user.username[0]}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  placeholder="返信をポスト"
+                  variant="standard"
+                  disabled
+                  InputProps={{ disableUnderline: true }}
+                  sx={{ fontSize: '18px' }}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                  <Button variant="contained" disabled sx={{ borderRadius: '9999px', px: 3 }}>
+                    返信
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+
+        {/* Replies (Design Only) */}
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
+            返信はまだありません
+          </Typography>
+        </Box>
+      </Box>
+    </MainLayout>
+  );
+}

@@ -15,7 +15,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
 
 export default function LeftSidebar() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { mode, toggleTheme } = useTheme();
   const router = useRouter();
 
@@ -28,7 +28,12 @@ export default function LeftSidebar() {
     { icon: <Home fontSize="large" />, label: 'ホーム', path: '/', active: true },
     { icon: <Search fontSize="large" />, label: '検索', path: '#', active: false },
     { icon: <Notifications fontSize="large" />, label: '通知', path: '#', active: false },
-    { icon: <Person fontSize="large" />, label: 'プロフィール', path: '#', active: false },
+    {
+      icon: <Person fontSize="large" />,
+      label: 'プロフィール',
+      path: user ? `/profile/${user.username}` : '#',
+      active: !!user
+    },
   ];
 
   return (

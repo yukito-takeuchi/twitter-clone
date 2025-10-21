@@ -313,7 +313,7 @@ export default function ProfileEditDialog({
         open={cropDialogOpen}
         imageSrc={cropImageSrc}
         cropShape={cropType === 'avatar' ? 'round' : 'rect'}
-        aspect={cropType === 'avatar' ? 1 : 16 / 9}
+        aspect={cropType === 'avatar' ? 1 : 3}
         onClose={() => setCropDialogOpen(false)}
         onCropComplete={handleCropComplete}
       />

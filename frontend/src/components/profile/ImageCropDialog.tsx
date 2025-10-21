@@ -27,7 +27,7 @@ export default function ImageCropDialog({
   open,
   imageSrc,
   cropShape = "rect",
-  aspect = 16 / 9,
+  aspect = 3,
   onClose,
   onCropComplete,
 }: ImageCropDialogProps) {
@@ -100,15 +100,13 @@ export default function ImageCropDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="xl"
-      fullWidth
+      maxWidth={false}
       PaperProps={{
         sx: {
           bgcolor: "background.default",
           color: "text.primary",
           width: "95vw",
-          maxWidth: "none",
-          minWidth: "1000px",
+          maxWidth: cropShape === 'round' ? '700px' : '1600px',
         },
       }}
     >
@@ -119,10 +117,10 @@ export default function ImageCropDialog({
         sx={{
           p: 0,
           position: "relative",
-          height: "70vh",
+          height: cropShape === 'round' ? '700px' : 'calc(95vw / 3)',
+          maxHeight: cropShape === 'round' ? '700px' : 'calc(1600px / 3)',
+          minHeight: cropShape === 'round' ? '500px' : '400px',
           width: "100%",
-          minHeight: "500px",
-          minWidth: "1000px",
           bgcolor: "black",
         }}
       >
@@ -136,6 +134,7 @@ export default function ImageCropDialog({
           onCropChange={onCropChange}
           onZoomChange={onZoomChange}
           onCropComplete={onCropAreaChange}
+          objectFit="contain"
         />
       </DialogContent>
       <DialogActions

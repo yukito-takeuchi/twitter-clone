@@ -38,6 +38,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             top: 0,
             height: '100vh',
             overflowY: 'auto',
+            flexShrink: 0,
           }}
         >
           <LeftSidebar />
@@ -46,13 +47,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Main Content */}
         <Box
           sx={{
-            width: { xs: '100vw', md: '600px' },
-            minWidth: { xs: '100vw', md: '600px' },
-            maxWidth: '600px',
-            borderRight: '1px solid',
+            width: { xs: '100vw', sm: '100vw', md: '600px' },
+            minWidth: { xs: '100vw', sm: '100vw', md: '600px' },
+            maxWidth: { xs: '100vw', sm: '100vw', md: '600px' },
+            borderRight: { xs: 'none', md: '1px solid' },
             borderLeft: { xs: 'none', md: '1px solid' },
             borderColor: 'divider',
             minHeight: '100vh',
+            flexShrink: 0,
           }}
         >
           {children}
@@ -61,13 +63,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Right Sidebar */}
         <Box
           sx={{
-            flex: 1,
-            maxWidth: '350px',
+            flex: { xs: 0, lg: 1 },
+            maxWidth: { xs: 0, lg: '350px' },
             display: { xs: 'none', lg: 'block' },
             position: 'sticky',
             top: 0,
             height: '100vh',
             overflowY: 'auto',
+            minWidth: { lg: '350px' },
           }}
         >
           <RightSidebar />

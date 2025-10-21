@@ -151,12 +151,14 @@ export default function ProfilePage() {
       <Box
         sx={{
           height: 200,
+          width: '100%',
           bgcolor: 'action.hover',
           backgroundImage: profile.cover_image_url
             ? `url(${getImageUrl(profile.cover_image_url)})`
             : 'linear-gradient(to right, #1DA1F2, #14171A)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       />
 

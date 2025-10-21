@@ -78,7 +78,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       <Box sx={{ display: 'flex', gap: 2 }}>
         {/* Avatar */}
         <Avatar sx={{ width: 40, height: 40 }}>
-          {post.author_display_name?.[0] || post.author_username[0]}
+          {post.display_name?.[0] || post.username?.[0] || '?'}
         </Avatar>
 
         {/* Content */}
@@ -89,10 +89,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               variant="body1"
               sx={{ fontWeight: 'bold', color: 'text.primary' }}
             >
-              {post.author_display_name || post.author_username}
+              {post.display_name || post.username}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              @{post.author_username}
+              @{post.username}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               ·

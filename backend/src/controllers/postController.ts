@@ -8,6 +8,13 @@ export const postController = {
   createPost: asyncHandler(async (req: Request, res: Response) => {
     const { user_id, content, image_url, reply_to_id, repost_of_id } = req.body;
 
+    console.log('[postController] Creating post:', {
+      user_id,
+      user_id_type: typeof user_id,
+      content: content?.substring(0, 20),
+      body: req.body,
+    });
+
     // Check if user exists
     const user = await UserModel.findById(user_id);
     if (!user) {

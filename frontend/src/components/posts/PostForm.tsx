@@ -18,6 +18,12 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     e.preventDefault();
     if (!content.trim() || !user) return;
 
+    console.log('[PostForm] Creating post with user:', {
+      user_id: user.id,
+      firebase_uid: user.firebase_uid,
+      username: user.username,
+    });
+
     setLoading(true);
     try {
       await postApi.create({
@@ -77,11 +83,6 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                 variant="contained"
                 disabled={!content.trim() || loading || content.length > 280}
                 sx={{
-                  bgcolor: '#000',
-                  '&:hover': { bgcolor: '#333' },
-                  borderRadius: '9999px',
-                  textTransform: 'none',
-                  fontWeight: 'bold',
                   px: 3,
                 }}
               >

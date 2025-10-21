@@ -110,12 +110,7 @@ export default function SignupPage() {
               mt: 3,
               mb: 2,
               py: 1.5,
-              bgcolor: '#000',
-              '&:hover': { bgcolor: '#333' },
-              borderRadius: '9999px',
-              textTransform: 'none',
               fontSize: '16px',
-              fontWeight: 'bold',
             }}
           >
             {loading ? '登録中...' : 'アカウント作成'}

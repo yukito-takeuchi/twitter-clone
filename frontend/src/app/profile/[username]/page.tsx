@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
 import Header from '@/components/layout/Header';
 import PostCard from '@/components/posts/PostCard';
+import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
 import { userApi, postApi, followApi } from '@/lib/api';
 import type { User, Profile, PostWithStats } from '@/types';
 
@@ -33,6 +34,7 @@ export default function ProfilePage() {
   const [tabValue, setTabValue] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -77,6 +79,18 @@ export default function ProfilePage() {
     } finally {
       setFollowLoading(false);
     }
+  };
+
+  const handleEditProfileSave = () => {
+    fetchUserData();
+  };
+
+  const getImageUrl = (url: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
   };
 
   if (loading) {
@@ -138,8 +152,11 @@ export default function ProfilePage() {
         sx={{
           height: 200,
           bgcolor: 'action.hover',
-          backgroundImage: 'linear-gradient(to right, #1DA1F2, #14171A)',
+          backgroundImage: profile.cover_image_url
+            ? `url(${getImageUrl(profile.cover_image_url)})`
+            : 'linear-gradient(to right, #1DA1F2, #14171A)',
           backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       />
 
@@ -148,6 +165,7 @@ export default function ProfilePage() {
         {/* Avatar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mt: -8 }}>
           <Avatar
+            src={profile.avatar_url ? getImageUrl(profile.avatar_url) : undefined}
             sx={{
               width: 134,
               height: 134,
@@ -156,12 +174,13 @@ export default function ProfilePage() {
               fontSize: '48px',
             }}
           >
-            {user.display_name?.[0] || user.username[0]}
+            {!profile.avatar_url && (user.display_name?.[0] || user.username[0])}
           </Avatar>
 
           {isOwnProfile ? (
             <Button
               variant="outlined"
+              onClick={() => setEditDialogOpen(true)}
               sx={{
                 mt: 1,
                 borderRadius: '9999px',
@@ -303,6 +322,17 @@ export default function ProfilePage() {
           </Box>
         )}
       </Box>
+
+      {/* Edit Profile Dialog */}
+      {isOwnProfile && (
+        <ProfileEditDialog
+          open={editDialogOpen}
+          user={user}
+          profile={profile}
+          onClose={() => setEditDialogOpen(false)}
+          onSave={handleEditProfileSave}
+        />
+      )}
     </MainLayout>
   );
 }

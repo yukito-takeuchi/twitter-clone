@@ -48,6 +48,11 @@ export const userApi = {
     );
     return response.data.data!;
   },
+
+  update: async (userId: string, data: { display_name?: string }): Promise<User> => {
+    const response = await api.put<ApiResponse<{ user: User }>>(`/users/${userId}`, data);
+    return response.data.data!.user;
+  },
 };
 
 // Profile API

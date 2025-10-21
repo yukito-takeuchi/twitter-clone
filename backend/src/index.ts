@@ -6,6 +6,10 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 // Import routes
 import userRoutes from "./routes/users";
+import profileRoutes from "./routes/profiles";
+import postRoutes from "./routes/posts";
+import likeRoutes from "./routes/likes";
+import followRoutes from "./routes/follows";
 
 const app = express();
 const PORT = config.port;
@@ -42,6 +46,10 @@ app.get("/health/db", async (req, res) => {
 
 // API Routes
 app.use("/api/users", userRoutes);
+app.use("/api/profiles", profileRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/likes", likeRoutes);
+app.use("/api/follows", followRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

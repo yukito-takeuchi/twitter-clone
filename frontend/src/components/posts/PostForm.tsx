@@ -77,11 +77,6 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                 variant="contained"
                 disabled={!content.trim() || loading || content.length > 280}
                 sx={{
-                  bgcolor: '#000',
-                  '&:hover': { bgcolor: '#333' },
-                  borderRadius: '9999px',
-                  textTransform: 'none',
-                  fontWeight: 'bold',
                   px: 3,
                 }}
               >

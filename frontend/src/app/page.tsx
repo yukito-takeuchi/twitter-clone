@@ -77,7 +77,9 @@ export default function HomePage() {
             borderBottom: '1px solid',
             borderColor: 'divider',
             backdropFilter: 'blur(10px)',
-            bgcolor: 'rgba(255, 255, 255, 0.8)',
+            bgcolor: (theme) => theme.palette.mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(0, 0, 0, 0.8)',
           }}
         >
           <Box sx={{ p: 2 }}>

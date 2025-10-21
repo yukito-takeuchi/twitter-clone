@@ -1,15 +1,17 @@
 # Twitter Clone API - Postman Testing Guide
 
-**ベースURL**: `http://localhost:3001`
+**ベース URL**: `http://localhost:3001`
 
-## ユーザーAPI (User API)
+## ユーザー API (User API)
 
 ### 1. ユーザー作成 (Create User)
+
 ```
 POST /api/users
 ```
 
 **Body (JSON)**:
+
 ```json
 {
   "firebase_uid": "test_firebase_uid_001",
@@ -20,6 +22,7 @@ POST /api/users
 ```
 
 **成功レスポンス (201)**:
+
 ```json
 {
   "status": "success",
@@ -39,6 +42,7 @@ POST /api/users
 ```
 
 **エラーレスポンス (409 - 重複)**:
+
 ```json
 {
   "status": "error",
@@ -48,17 +52,20 @@ POST /api/users
 
 ---
 
-### 2. ユーザー取得（ID指定）(Get User by ID)
+### 2. ユーザー取得（ID 指定）(Get User by ID)
+
 ```
 GET /api/users/:id
 ```
 
 **例**:
+
 ```
 GET /api/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -90,6 +97,7 @@ GET /api/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **エラーレスポンス (404)**:
+
 ```json
 {
   "status": "error",
@@ -100,34 +108,40 @@ GET /api/users/550e8400-e29b-41d4-a716-446655440000
 ---
 
 ### 3. ユーザー取得（ユーザー名指定）(Get User by Username)
+
 ```
 GET /api/users/username/:username
 ```
 
 **例**:
+
 ```
 GET /api/users/username/testuser
 ```
 
-**成功レスポンス**: ユーザー取得（ID指定）と同じ
+**成功レスポンス**: ユーザー取得（ID 指定）と同じ
 
 ---
 
 ### 4. ユーザー一覧取得 (Get All Users)
+
 ```
 GET /api/users?limit=20&offset=0
 ```
 
 **クエリパラメータ**:
+
 - `limit`: 取得件数（1-100、デフォルト: 20）
 - `offset`: オフセット（デフォルト: 0）
 
 **例**:
+
 ```
 GET /api/users?limit=10&offset=0
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -166,20 +180,24 @@ GET /api/users?limit=10&offset=0
 ---
 
 ### 5. ユーザー検索 (Search Users)
+
 ```
 GET /api/users/search?q=keyword&limit=20
 ```
 
 **クエリパラメータ**:
+
 - `q`: 検索キーワード（必須）
 - `limit`: 取得件数（1-100、デフォルト: 20）
 
 **例**:
+
 ```
 GET /api/users/search?q=test&limit=10
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -205,11 +223,13 @@ GET /api/users/search?q=test&limit=10
 ---
 
 ### 6. ユーザー更新 (Update User)
+
 ```
 PUT /api/users/:id
 ```
 
 **Body (JSON)** - すべてオプション:
+
 ```json
 {
   "display_name": "Updated Name",
@@ -218,11 +238,13 @@ PUT /api/users/:id
 ```
 
 **例**:
+
 ```
 PUT /api/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Body**:
+
 ```json
 {
   "display_name": "New Display Name"
@@ -230,6 +252,7 @@ PUT /api/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -251,16 +274,19 @@ PUT /api/users/550e8400-e29b-41d4-a716-446655440000
 ---
 
 ### 7. ユーザー削除（ソフトデリート）(Delete User)
+
 ```
 DELETE /api/users/:id
 ```
 
 **例**:
+
 ```
 DELETE /api/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -273,16 +299,19 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000
 ---
 
 ### 8. ユーザー削除（完全削除）(Hard Delete User)
+
 ```
 DELETE /api/users/:id/permanent
 ```
 
 **例**:
+
 ```
 DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ```
 
 **成功レスポンス (200)**:
+
 ```json
 {
   "status": "success",
@@ -297,6 +326,7 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ## エラーレスポンス
 
 ### バリデーションエラー (400)
+
 ```json
 {
   "status": "error",
@@ -305,6 +335,7 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ```
 
 ### 認証エラー (401)
+
 ```json
 {
   "status": "error",
@@ -313,6 +344,7 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ```
 
 ### リソースが見つからない (404)
+
 ```json
 {
   "status": "error",
@@ -321,6 +353,7 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ```
 
 ### 競合エラー (409)
+
 ```json
 {
   "status": "error",
@@ -329,6 +362,7 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ```
 
 ### サーバーエラー (500)
+
 ```json
 {
   "status": "error",
@@ -341,10 +375,13 @@ DELETE /api/users/550e8400-e29b-41d4-a716-446655440000/permanent
 ## Postman テスト手順
 
 ### 1. 新しいユーザーを作成
+
 ```
 POST http://localhost:3001/api/users
 ```
+
 Body:
+
 ```json
 {
   "firebase_uid": "my_test_user_001",
@@ -354,19 +391,24 @@ Body:
 }
 ```
 
-### 2. レスポンスからユーザーIDをコピー
+### 2. レスポンスからユーザー ID をコピー
+
 レスポンスの `data.user.id` をコピー
 
-### 3. そのIDでユーザーを取得
+### 3. その ID でユーザーを取得
+
 ```
 GET http://localhost:3001/api/users/{コピーしたID}
 ```
 
 ### 4. ユーザーを更新
+
 ```
 PUT http://localhost:3001/api/users/{コピーしたID}
 ```
+
 Body:
+
 ```json
 {
   "display_name": "Updated Test User"
@@ -374,11 +416,13 @@ Body:
 ```
 
 ### 5. ユーザーを検索
+
 ```
 GET http://localhost:3001/api/users/search?q=mytest
 ```
 
 ### 6. ユーザー一覧を取得
+
 ```
 GET http://localhost:3001/api/users?limit=20&offset=0
 ```
@@ -387,29 +431,32 @@ GET http://localhost:3001/api/users?limit=20&offset=0
 
 ## 次のステップ
 
-ユーザーAPIのテストが完了したら、次は以下のAPIを実装します：
+ユーザー API のテストが完了したら、次は以下の API を実装します：
 
-1. **プロフィールAPI** - プロフィール情報の更新
-2. **投稿API** - 投稿のCRUD操作
-3. **いいねAPI** - いいね/いいね解除
-4. **フォローAPI** - フォロー/フォロー解除
-5. **タイムラインAPI** - フォローユーザーの投稿取得
+1. **プロフィール API** - プロフィール情報の更新
+2. **投稿 API** - 投稿の CRUD 操作
+3. **いいね API** - いいね/いいね解除
+4. **フォロー API** - フォロー/フォロー解除
+5. **タイムライン API** - フォローユーザーの投稿取得
 
 ---
 
 ## トラブルシューティング
 
 ### サーバーが起動していない場合
+
 ```bash
 docker-compose up -d
 ```
 
 ### ログ確認
+
 ```bash
 docker-compose logs -f backend
 ```
 
 ### データベースリセット
+
 ```bash
 docker-compose down -v
 docker-compose up -d

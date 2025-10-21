@@ -62,6 +62,27 @@ export const userController = {
     });
   }),
 
+  // Get user by Firebase UID
+  getUserByFirebaseUid: asyncHandler(async (req: Request, res: Response) => {
+    const { firebase_uid } = req.params;
+
+    const user = await UserModel.findByFirebaseUid(firebase_uid);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    // Get profile
+    const profile = await ProfileModel.findByUserId(user.id);
+
+    res.json({
+      status: "success",
+      data: {
+        user,
+        profile,
+      },
+    });
+  }),
+
   // Get user by username
   getUserByUsername: asyncHandler(async (req: Request, res: Response) => {
     const { username } = req.params;

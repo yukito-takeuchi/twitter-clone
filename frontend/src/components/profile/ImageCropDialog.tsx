@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,14 +10,14 @@ import {
   Box,
   Slider,
   Typography,
-} from '@mui/material';
-import Cropper from 'react-easy-crop';
-import { Area, Point } from 'react-easy-crop/types';
+} from "@mui/material";
+import Cropper from "react-easy-crop";
+import { Area, Point } from "react-easy-crop/types";
 
 interface ImageCropDialogProps {
   open: boolean;
   imageSrc: string;
-  cropShape?: 'rect' | 'round';
+  cropShape?: "rect" | "round";
   aspect?: number;
   onClose: () => void;
   onCropComplete: (croppedImage: Blob) => void;
@@ -26,7 +26,7 @@ interface ImageCropDialogProps {
 export default function ImageCropDialog({
   open,
   imageSrc,
-  cropShape = 'rect',
+  cropShape = "rect",
   aspect = 16 / 9,
   onClose,
   onCropComplete,
@@ -60,8 +60,8 @@ export default function ImageCropDialog({
       image.onload = resolve;
     });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
     if (!ctx) return null;
 
@@ -85,7 +85,7 @@ export default function ImageCropDialog({
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
         resolve(blob);
-      }, 'image/jpeg');
+      }, "image/jpeg");
     });
   };
 
@@ -100,28 +100,32 @@ export default function ImageCropDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="xl"
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: 'background.default',
-          color: 'text.primary',
-          width: '90vw',
-          maxWidth: '900px',
+          bgcolor: "background.default",
+          color: "text.primary",
+          width: "95vw",
+          maxWidth: "none",
+          minWidth: "1000px",
         },
       }}
     >
-      <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+      <DialogTitle sx={{ borderBottom: "1px solid", borderColor: "divider" }}>
         画像を編集
       </DialogTitle>
-      <DialogContent sx={{ 
-        p: 0, 
-        position: 'relative', 
-        height: '60vh', 
-        width: '100%',
-        minHeight: '400px',
-        bgcolor: 'black' 
-      }}>
+      <DialogContent
+        sx={{
+          p: 0,
+          position: "relative",
+          height: "70vh",
+          width: "100%",
+          minHeight: "500px",
+          minWidth: "1000px",
+          bgcolor: "black",
+        }}
+      >
         <Cropper
           image={imageSrc}
           crop={crop}
@@ -136,15 +140,15 @@ export default function ImageCropDialog({
       </DialogContent>
       <DialogActions
         sx={{
-          flexDirection: 'column',
+          flexDirection: "column",
           gap: 2,
           p: 3,
-          borderTop: '1px solid',
-          borderColor: 'divider',
+          borderTop: "1px solid",
+          borderColor: "divider",
         }}
       >
-        <Box sx={{ width: '100%' }}>
-          <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+        <Box sx={{ width: "100%" }}>
+          <Typography variant="body2" sx={{ mb: 1, color: "text.secondary" }}>
             ズーム
           </Typography>
           <Slider
@@ -153,15 +157,22 @@ export default function ImageCropDialog({
             max={3}
             step={0.1}
             onChange={(e, value) => onZoomChange(value as number)}
-            sx={{ color: 'primary.main' }}
+            sx={{ color: "primary.main" }}
           />
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, width: '100%', justifyContent: 'flex-end' }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            width: "100%",
+            justifyContent: "flex-end",
+          }}
+        >
           <Button
             onClick={onClose}
             sx={{
-              borderRadius: '9999px',
-              textTransform: 'none',
+              borderRadius: "9999px",
+              textTransform: "none",
               px: 3,
             }}
           >
@@ -171,8 +182,8 @@ export default function ImageCropDialog({
             variant="contained"
             onClick={handleSave}
             sx={{
-              borderRadius: '9999px',
-              textTransform: 'none',
+              borderRadius: "9999px",
+              textTransform: "none",
               px: 3,
             }}
           >

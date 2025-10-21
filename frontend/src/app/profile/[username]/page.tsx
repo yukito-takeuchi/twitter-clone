@@ -169,7 +169,7 @@ export default function ProfilePage() {
           backgroundImage: profile.cover_image_url
             ? `url(${getImageUrl(profile.cover_image_url)})`
             : "linear-gradient(to right, #1DA1F2, #14171A)",
-          backgroundSize: "contain",
+          backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
@@ -308,13 +308,16 @@ export default function ProfilePage() {
       <Tabs
         value={tabValue}
         onChange={(e, newValue) => setTabValue(newValue)}
+        variant="fullWidth"
         sx={{
+          width: "100%",
           borderBottom: "1px solid",
           borderColor: "divider",
           "& .MuiTab-root": {
             textTransform: "none",
             fontWeight: "bold",
             minWidth: 100,
+            flex: 1,
           },
         }}
       >

@@ -106,13 +106,22 @@ export default function ImageCropDialog({
         sx: {
           bgcolor: 'background.default',
           color: 'text.primary',
+          width: '90vw',
+          maxWidth: '900px',
         },
       }}
     >
       <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
         画像を編集
       </DialogTitle>
-      <DialogContent sx={{ p: 0, position: 'relative', height: '60vh', bgcolor: 'black' }}>
+      <DialogContent sx={{ 
+        p: 0, 
+        position: 'relative', 
+        height: '60vh', 
+        width: '100%',
+        minHeight: '400px',
+        bgcolor: 'black' 
+      }}>
         <Cropper
           image={imageSrc}
           crop={crop}

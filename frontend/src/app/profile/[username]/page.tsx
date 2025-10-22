@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const username = params.username as string;
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, loading: authLoading } = useAuth();
 
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -50,10 +50,10 @@ export default function ProfilePage() {
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
 
   useEffect(() => {
-    if (username) {
+    if (username && !authLoading) {
       fetchUserData();
     }
-  }, [username]);
+  }, [username, currentUser, authLoading]);
 
   const fetchUserData = async () => {
     try {

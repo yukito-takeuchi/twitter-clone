@@ -106,7 +106,7 @@ export default function LeftSidebar() {
       </Box>
 
       {/* Navigation */}
-      <List sx={{ px: 0, maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', overflowX: 'hidden' }}>
+      <List sx={{ px: 0, maxHeight: '70vh', overflow: 'hidden' }}>
         {navItems.map((item) => (
           <ListItem key={item.label} disablePadding sx={{ mb: 0.25 }}>
             <ListItemButton
@@ -114,7 +114,7 @@ export default function LeftSidebar() {
               disabled={!item.active}
               sx={{
                 borderRadius: '9999px',
-                py: 1.5,
+                py: 1,
                 px: 2,
                 '&:hover': {
                   bgcolor: 'action.hover',

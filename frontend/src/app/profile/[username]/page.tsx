@@ -11,6 +11,9 @@ import {
   Tab,
   CircularProgress,
   IconButton,
+  Dialog,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -43,6 +46,8 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [unfollowDialogOpen, setUnfollowDialogOpen] = useState(false);
+  const [isHoveringFollow, setIsHoveringFollow] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -75,29 +80,37 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFollowToggle = async () => {
+  const handleFollow = async () => {
     if (!currentUser || !user || followLoading) return;
 
-    const previousState = isFollowing; // 元の状態を保存
-
     setFollowLoading(true);
-    setIsFollowing(!isFollowing); // 楽観的UI更新（先にUIを変更）
+    setIsFollowing(true); // 楽観的UI更新
 
     try {
-      if (previousState) {
-        // フォロー中だった → アンフォロー
-        await followApi.unfollow(currentUser.id, user.id);
-      } else {
-        // フォローしていなかった → フォロー
-        await followApi.follow(currentUser.id, user.id);
-      }
+      await followApi.follow(currentUser.id, user.id);
     } catch (error: any) {
-      console.error("Failed to toggle follow:", error);
-      // エラー時は元の状態に戻す
-      setIsFollowing(previousState);
+      console.error("Failed to follow:", error);
+      setIsFollowing(false); // エラー時は元に戻す
+      const errorMessage = error.response?.data?.message || 'フォローに失敗しました';
+      alert(errorMessage);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
-      // ユーザーにエラーを通知
-      const errorMessage = error.response?.data?.message || 'フォロー操作に失敗しました';
+  const handleUnfollow = async () => {
+    if (!currentUser || !user || followLoading) return;
+
+    setUnfollowDialogOpen(false);
+    setFollowLoading(true);
+    setIsFollowing(false); // 楽観的UI更新
+
+    try {
+      await followApi.unfollow(currentUser.id, user.id);
+    } catch (error: any) {
+      console.error("Failed to unfollow:", error);
+      setIsFollowing(true); // エラー時は元に戻す
+      const errorMessage = error.response?.data?.message || 'フォロー解除に失敗しました';
       alert(errorMessage);
     } finally {
       setFollowLoading(false);
@@ -260,23 +273,41 @@ export default function ProfilePage() {
             </Button>
           ) : (
             <Button
-              variant="contained"
-              onClick={handleFollowToggle}
+              variant={isFollowing ? "outlined" : "contained"}
+              onClick={isFollowing ? () => setUnfollowDialogOpen(true) : handleFollow}
+              onMouseEnter={() => setIsHoveringFollow(true)}
+              onMouseLeave={() => setIsHoveringFollow(false)}
               disabled={followLoading}
               sx={{
                 borderRadius: "9999px",
                 textTransform: "none",
                 fontWeight: "bold",
-                bgcolor: 'text.primary',
-                color: 'background.default',
-                '&:hover': {
-                  bgcolor: 'text.primary',
-                  opacity: 0.9,
-                },
                 px: 2,
+                minWidth: '110px',
+                // フォロー中の場合
+                ...(isFollowing && {
+                  borderColor: isHoveringFollow ? 'rgb(244, 33, 46)' : 'divider',
+                  color: isHoveringFollow ? 'rgb(244, 33, 46)' : 'text.primary',
+                  bgcolor: isHoveringFollow ? 'rgba(244, 33, 46, 0.1)' : 'transparent',
+                  '&:hover': {
+                    borderColor: 'rgb(244, 33, 46)',
+                  },
+                }),
+                // 未フォローの場合
+                ...(!isFollowing && {
+                  bgcolor: 'text.primary',
+                  color: 'background.default',
+                  '&:hover': {
+                    bgcolor: 'text.primary',
+                    opacity: 0.9,
+                  },
+                }),
               }}
             >
-              {isFollowing ? "フォロー中" : "フォロー"}
+              {isFollowing
+                ? (isHoveringFollow ? 'フォロー解除' : 'フォロー中')
+                : 'フォロー'
+              }
             </Button>
           )}
         </Box>
@@ -434,6 +465,62 @@ export default function ProfilePage() {
           onSave={handleEditProfileSave}
         />
       )}
+
+      {/* Unfollow Confirmation Dialog */}
+      <Dialog
+        open={unfollowDialogOpen}
+        onClose={() => setUnfollowDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogContent sx={{ pt: 4, px: 4, pb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, fontSize: '20px' }}>
+            @{user?.username} さんのフォローを解除しますか？
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 4, pb: 4, gap: 1.5, flexDirection: 'column' }}>
+          <Button
+            onClick={handleUnfollow}
+            variant="contained"
+            fullWidth
+            sx={{
+              borderRadius: '9999px',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              bgcolor: 'rgb(15, 20, 25)',
+              color: 'white',
+              py: 1.5,
+              fontSize: '15px',
+              '&:hover': {
+                bgcolor: 'rgb(39, 44, 48)',
+              },
+            }}
+          >
+            フォロー解除
+          </Button>
+          <Button
+            onClick={() => setUnfollowDialogOpen(false)}
+            variant="outlined"
+            fullWidth
+            sx={{
+              borderRadius: '9999px',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderColor: 'divider',
+              color: 'text.primary',
+              py: 1.5,
+              fontSize: '15px',
+            }}
+          >
+            キャンセル
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainLayout>
   );
 }

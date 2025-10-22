@@ -20,10 +20,13 @@ export default function RightSidebar() {
   return (
     <Box
       sx={{
-        height: '100%',
+        height: '100vh',
         px: 2.5,
         py: 1,
-        overflowY: 'auto',
+        overflowY: 'hidden',
+        overflowX: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Search Box */}
@@ -51,8 +54,10 @@ export default function RightSidebar() {
         />
       </Box>
 
-      {/* What's Happening (上に配置) */}
-      <Paper
+      {/* Scrollable Content Area */}
+      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+        {/* What's Happening (上に配置) */}
+        <Paper
         elevation={0}
         sx={{
           borderRadius: 2,
@@ -217,6 +222,7 @@ export default function RightSidebar() {
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1 }}>
           © 2024 X Clone
         </Typography>
+      </Box>
       </Box>
     </Box>
   );

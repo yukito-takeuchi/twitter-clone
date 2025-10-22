@@ -13,6 +13,12 @@ import {
   Group,
   Verified,
   ListAlt,
+  Chat,
+  MonetizationOn,
+  PersonAdd,
+  Campaign,
+  Mic,
+  Settings,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -180,7 +186,7 @@ export default function LeftSidebar() {
             }}
           >
             <Avatar
-              src={getImageUrl(user.avatar_url || null)}
+              src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}
               sx={{ width: 40, height: 40 }}
             >
               {!user.avatar_url && (user.display_name?.[0] || user.username[0])}

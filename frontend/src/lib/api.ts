@@ -116,6 +116,15 @@ export const postApi = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/posts/${id}`);
   },
+
+  getReplies: async (postId: string, limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ replies: PostWithStats[] }>>(
+      `/posts/${postId}/replies?${params.toString()}`
+    );
+    return response.data.data!.replies;
+  },
 };
 
 // Like API

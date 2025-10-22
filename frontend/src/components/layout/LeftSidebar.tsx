@@ -116,7 +116,7 @@ export default function LeftSidebar() {
               disabled={!item.active}
               sx={{
                 borderRadius: '9999px',
-                py: { xs: 0.5, sm: 0.75, md: 1 },
+                py: { xs: 0.25, sm: 0.375, md: 0.5 },
                 px: 2,
                 '&:hover': {
                   bgcolor: 'action.hover',

@@ -61,8 +61,13 @@ export default function ProfilePage() {
       const userPosts = await postApi.getByUser(userData.user.id, 20, 0, currentUser?.id);
       setPosts(userPosts);
 
-      // Check if following (TODO: implement when needed)
-      setIsFollowing(false);
+      // Check if following
+      if (currentUser && userData.user.id !== currentUser.id) {
+        const following = await followApi.checkIfFollowing(currentUser.id, userData.user.id);
+        setIsFollowing(following);
+      } else {
+        setIsFollowing(false);
+      }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
@@ -182,14 +187,7 @@ export default function ProfilePage() {
       {/* Profile Info */}
       <Box sx={{ px: 2, pb: 2 }}>
         {/* Avatar */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            mt: -8,
-          }}
-        >
+        <Box sx={{ mt: -8 }}>
           <Avatar
             src={
               profile.avatar_url ? getImageUrl(profile.avatar_url) : undefined
@@ -205,71 +203,72 @@ export default function ProfilePage() {
             {!profile.avatar_url &&
               (user.display_name?.[0] || user.username[0])}
           </Avatar>
+        </Box>
 
-          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-            {!isOwnProfile && (
-              <>
-                <IconButton
-                  disabled
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    width: 36,
-                    height: 36,
-                  }}
-                >
-                  <NotificationsOutlined fontSize="small" />
-                </IconButton>
-                <IconButton
-                  disabled
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    width: 36,
-                    height: 36,
-                  }}
-                >
-                  <MoreHoriz fontSize="small" />
-                </IconButton>
-              </>
-            )}
-            {isOwnProfile ? (
-              <Button
-                variant="outlined"
-                onClick={() => setEditDialogOpen(true)}
+        {/* Action Buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+          {!isOwnProfile && (
+            <>
+              <IconButton
+                disabled
                 sx={{
-                  borderRadius: "9999px",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  borderColor: "divider",
-                  color: "text.primary",
-                  px: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  width: 36,
+                  height: 36,
                 }}
               >
-                プロフィールを編集
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleFollowToggle}
-                disabled={followLoading}
+                <NotificationsOutlined fontSize="small" />
+              </IconButton>
+              <IconButton
+                disabled
                 sx={{
-                  borderRadius: "9999px",
-                  textTransform: "none",
-                  fontWeight: "bold",
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  width: 36,
+                  height: 36,
+                }}
+              >
+                <MoreHoriz fontSize="small" />
+              </IconButton>
+            </>
+          )}
+          {isOwnProfile ? (
+            <Button
+              variant="outlined"
+              onClick={() => setEditDialogOpen(true)}
+              sx={{
+                borderRadius: "9999px",
+                textTransform: "none",
+                fontWeight: "bold",
+                borderColor: "divider",
+                color: "text.primary",
+                px: 2,
+              }}
+            >
+              プロフィールを編集
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleFollowToggle}
+              disabled={followLoading}
+              sx={{
+                borderRadius: "9999px",
+                textTransform: "none",
+                fontWeight: "bold",
+                bgcolor: 'text.primary',
+                color: 'background.default',
+                '&:hover': {
                   bgcolor: 'text.primary',
-                  color: 'background.default',
-                  '&:hover': {
-                    bgcolor: 'text.primary',
-                    opacity: 0.9,
-                  },
-                  px: 2,
-                }}
-              >
-                {isFollowing ? "フォロー中" : "フォロー"}
-              </Button>
-            )}
-          </Box>
+                  opacity: 0.9,
+                },
+                px: 2,
+              }}
+            >
+              {isFollowing ? "フォロー中" : "フォロー"}
+            </Button>
+          )}
         </Box>
 
         {/* User Info */}

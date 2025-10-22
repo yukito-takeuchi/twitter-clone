@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, Typography, CircularProgress, Tabs, Tab } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
 import PostForm from '@/components/posts/PostForm';
 import PostCard from '@/components/posts/PostCard';
@@ -17,6 +17,7 @@ export default function HomePage() {
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tabValue, setTabValue] = useState(0); // 0: おすすめ, 1: フォロー中
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -24,13 +25,24 @@ export default function HomePage() {
     }
   }, [user, authLoading, router]);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (tab?: number) => {
     if (!user) return;
+
+    const currentTab = tab !== undefined ? tab : tabValue;
 
     try {
       setLoading(true);
       setError('');
-      const posts = await postApi.getTimeline(user.id, 20, 0, user.id);
+
+      let posts;
+      if (currentTab === 0) {
+        // おすすめ: 全投稿
+        posts = await postApi.getAll(20, 0, user.id);
+      } else {
+        // フォロー中: タイムライン
+        posts = await postApi.getTimeline(user.id, 20, 0, user.id);
+      }
+
       setPosts(posts || []);
     } catch (err: any) {
       console.error('Failed to fetch posts:', err);
@@ -39,6 +51,11 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    fetchPosts(newValue);
   };
 
   useEffect(() => {
@@ -69,6 +86,53 @@ export default function HomePage() {
   return (
     <MainLayout>
       <Header title="ホーム" />
+
+      {/* Tabs */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          bgcolor: (theme) =>
+            theme.palette.mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(0, 0, 0, 0.8)',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{
+            minHeight: '53px',
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 'normal',
+              fontSize: '15px',
+              minHeight: '53px',
+              color: 'text.secondary',
+              '&.Mui-selected': {
+                fontWeight: 'bold',
+                color: 'text.primary',
+              },
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            },
+            '& .MuiTabs-indicator': {
+              height: '4px',
+              borderRadius: '2px',
+              backgroundColor: 'rgb(29, 155, 240)',
+            },
+          }}
+        >
+          <Tab label="おすすめ" />
+          <Tab label="フォロー中" />
+        </Tabs>
+      </Box>
 
       {/* Post Form */}
       <PostForm onPostCreated={fetchPosts} />

@@ -165,7 +165,10 @@ export default function PostDetailPage() {
         {/* User Info */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
           <Link href={`/profile/${post.username}`} style={{ textDecoration: 'none' }}>
-            <Avatar sx={{ width: 48, height: 48, cursor: 'pointer' }}>
+            <Avatar
+              src={post.avatar_url ? getImageUrl(post.avatar_url) : undefined}
+              sx={{ width: 48, height: 48, cursor: 'pointer' }}
+            >
               {post.display_name?.[0] || post.username?.[0] || '?'}
             </Avatar>
           </Link>
@@ -366,7 +369,10 @@ export default function PostDetailPage() {
         {user && (
           <Box sx={{ py: 2 }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Avatar sx={{ width: 40, height: 40 }}>
+              <Avatar
+                src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}
+                sx={{ width: 40, height: 40 }}
+              >
                 {user.display_name?.[0] || user.username[0]}
               </Avatar>
               <Box sx={{ flex: 1 }}>

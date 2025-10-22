@@ -75,6 +75,14 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     }
   };
 
+  const getImageUrl = (url: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+  };
+
   if (!user) return null;
 
   return (
@@ -88,7 +96,9 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     >
       <Box component="form" onSubmit={handleSubmit}>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Avatar>{user.display_name?.[0] || user.username[0]}</Avatar>
+          <Avatar src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}>
+            {user.display_name?.[0] || user.username[0]}
+          </Avatar>
           <Box sx={{ flex: 1 }}>
             <TextField
               fullWidth

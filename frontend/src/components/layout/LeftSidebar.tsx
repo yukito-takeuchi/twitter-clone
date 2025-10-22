@@ -80,7 +80,7 @@ export default function LeftSidebar() {
       {/* Logo + Navigation */}
       <Box sx={{ flex: 1, maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
         {/* Logo */}
-        <Box sx={{ p: 1.5, mb: 0.5 }}>
+        <Box sx={{ p: 1.5, mb: 0.25 }}>
           <Box
             sx={{
               width: 50,

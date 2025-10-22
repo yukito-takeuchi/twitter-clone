@@ -5,6 +5,7 @@ export interface User {
   email: string;
   username: string;
   display_name: string | null;
+  avatar_url?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -43,6 +44,8 @@ export interface PostWithStats extends Post {
   avatar_url: string | null;
   like_count: number;
   reply_count: number;
+  retweet_count: number;
+  is_liked_by_current_user?: boolean;
 }
 
 // Like types

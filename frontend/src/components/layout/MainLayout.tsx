@@ -24,7 +24,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         sx={{
           display: 'flex',
           width: '100%',
-          maxWidth: '1280px',
+          maxWidth: '1320px',
           minHeight: '100vh',
         }}
       >

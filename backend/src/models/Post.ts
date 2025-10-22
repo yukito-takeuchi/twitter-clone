@@ -32,6 +32,8 @@ export interface PostWithStats extends Post {
   avatar_url: string | null;
   like_count: number;
   reply_count: number;
+  retweet_count: number;
+  is_liked_by_current_user?: boolean;
 }
 
 export class PostModel {
@@ -62,10 +64,20 @@ export class PostModel {
   }
 
   // Find post with stats by ID
-  static async findByIdWithStats(id: string): Promise<PostWithStats | null> {
+  static async findByIdWithStats(id: string, currentUserId?: string): Promise<PostWithStats | null> {
     const result = await query(
-      `SELECT * FROM posts_with_stats WHERE id = $1`,
-      [id]
+      `SELECT
+        pws.*,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $2
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats pws
+       WHERE id = $1`,
+      [id, currentUserId || null]
     );
     return result.rows[0] || null;
   }
@@ -74,14 +86,24 @@ export class PostModel {
   static async findByUserId(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT * FROM posts_with_stats
+      `SELECT
+        pws.*,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats pws
        WHERE user_id = $1
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
+      [userId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }
@@ -90,28 +112,47 @@ export class PostModel {
   static async getTimeline(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT p.* FROM posts_with_stats p
+      `SELECT
+        p.*,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $4
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats p
        WHERE p.user_id = $1
           OR p.user_id IN (
             SELECT following_id FROM follows WHERE follower_id = $1
           )
        ORDER BY p.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
+      [userId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }
 
   // Get all posts (public feed)
-  static async findAll(limit: number = 20, offset: number = 0): Promise<PostWithStats[]> {
+  static async findAll(limit: number = 20, offset: number = 0, currentUserId?: string): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT * FROM posts_with_stats
+      `SELECT
+        pws.*,
+        CASE
+          WHEN $3::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $3
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats pws
        ORDER BY created_at DESC
        LIMIT $1 OFFSET $2`,
-      [limit, offset]
+      [limit, offset, currentUserId || null]
     );
     return result.rows;
   }
@@ -120,14 +161,24 @@ export class PostModel {
   static async getReplies(
     postId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT * FROM posts_with_stats
+      `SELECT
+        pws.*,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats pws
        WHERE reply_to_id = $1
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
-      [postId, limit, offset]
+      [postId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }

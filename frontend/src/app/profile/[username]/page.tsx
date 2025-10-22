@@ -11,11 +11,18 @@ import {
   Tab,
   CircularProgress,
   IconButton,
+  Dialog,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   ArrowBack,
   CalendarToday,
   Link as LinkIcon,
+  LocationOn,
+  NotificationsOutlined,
+  MoreHoriz,
+  CakeOutlined,
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
@@ -29,7 +36,7 @@ export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const username = params.username as string;
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, loading: authLoading } = useAuth();
 
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -39,12 +46,14 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [unfollowDialogOpen, setUnfollowDialogOpen] = useState(false);
+  const [isHoveringFollow, setIsHoveringFollow] = useState(false);
 
   useEffect(() => {
-    if (username) {
+    if (username && !authLoading) {
       fetchUserData();
     }
-  }, [username]);
+  }, [username, currentUser, authLoading]);
 
   const fetchUserData = async () => {
     try {
@@ -54,11 +63,16 @@ export default function ProfilePage() {
       setProfile(userData.profile);
 
       // Fetch user's posts
-      const userPosts = await postApi.getByUser(userData.user.id);
+      const userPosts = await postApi.getByUser(userData.user.id, 20, 0, currentUser?.id);
       setPosts(userPosts);
 
-      // Check if following (TODO: implement when needed)
-      setIsFollowing(false);
+      // Check if following
+      if (currentUser && userData.user.id !== currentUser.id) {
+        const following = await followApi.checkIfFollowing(currentUser.id, userData.user.id);
+        setIsFollowing(following);
+      } else {
+        setIsFollowing(false);
+      }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
@@ -66,20 +80,38 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFollowToggle = async () => {
-    if (!currentUser || !user) return;
+  const handleFollow = async () => {
+    if (!currentUser || !user || followLoading) return;
 
     setFollowLoading(true);
+    setIsFollowing(true); // 楽観的UI更新
+
     try {
-      if (isFollowing) {
-        await followApi.unfollow(currentUser.id, user.id);
-        setIsFollowing(false);
-      } else {
-        await followApi.follow(currentUser.id, user.id);
-        setIsFollowing(true);
-      }
-    } catch (error) {
-      console.error("Failed to toggle follow:", error);
+      await followApi.follow(currentUser.id, user.id);
+    } catch (error: any) {
+      console.error("Failed to follow:", error);
+      setIsFollowing(false); // エラー時は元に戻す
+      const errorMessage = error.response?.data?.message || 'フォローに失敗しました';
+      alert(errorMessage);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!currentUser || !user || followLoading) return;
+
+    setUnfollowDialogOpen(false);
+    setFollowLoading(true);
+    setIsFollowing(false); // 楽観的UI更新
+
+    try {
+      await followApi.unfollow(currentUser.id, user.id);
+    } catch (error: any) {
+      console.error("Failed to unfollow:", error);
+      setIsFollowing(true); // エラー時は元に戻す
+      const errorMessage = error.response?.data?.message || 'フォロー解除に失敗しました';
+      alert(errorMessage);
     } finally {
       setFollowLoading(false);
     }
@@ -178,14 +210,7 @@ export default function ProfilePage() {
       {/* Profile Info */}
       <Box sx={{ px: 2, pb: 2 }}>
         {/* Avatar */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            mt: -8,
-          }}
-        >
+        <Box sx={{ mt: -8 }}>
           <Avatar
             src={
               profile.avatar_url ? getImageUrl(profile.avatar_url) : undefined
@@ -201,35 +226,88 @@ export default function ProfilePage() {
             {!profile.avatar_url &&
               (user.display_name?.[0] || user.username[0])}
           </Avatar>
+        </Box>
 
+        {/* Action Buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+          {!isOwnProfile && (
+            <>
+              <IconButton
+                disabled
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  width: 36,
+                  height: 36,
+                }}
+              >
+                <NotificationsOutlined fontSize="small" />
+              </IconButton>
+              <IconButton
+                disabled
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  width: 36,
+                  height: 36,
+                }}
+              >
+                <MoreHoriz fontSize="small" />
+              </IconButton>
+            </>
+          )}
           {isOwnProfile ? (
             <Button
               variant="outlined"
               onClick={() => setEditDialogOpen(true)}
               sx={{
-                mt: 1,
                 borderRadius: "9999px",
                 textTransform: "none",
                 fontWeight: "bold",
                 borderColor: "divider",
                 color: "text.primary",
+                px: 2,
               }}
             >
               プロフィールを編集
             </Button>
           ) : (
             <Button
-              variant="contained"
-              onClick={handleFollowToggle}
+              variant={isFollowing ? "outlined" : "contained"}
+              onClick={isFollowing ? () => setUnfollowDialogOpen(true) : handleFollow}
+              onMouseEnter={() => setIsHoveringFollow(true)}
+              onMouseLeave={() => setIsHoveringFollow(false)}
               disabled={followLoading}
               sx={{
-                mt: 1,
                 borderRadius: "9999px",
                 textTransform: "none",
                 fontWeight: "bold",
+                px: 2,
+                minWidth: '110px',
+                // フォロー中の場合
+                ...(isFollowing && {
+                  borderColor: isHoveringFollow ? 'rgb(244, 33, 46)' : 'divider',
+                  color: isHoveringFollow ? 'rgb(244, 33, 46)' : 'text.primary',
+                  bgcolor: isHoveringFollow ? 'rgba(244, 33, 46, 0.1)' : 'transparent',
+                  '&:hover': {
+                    borderColor: 'rgb(244, 33, 46)',
+                  },
+                }),
+                // 未フォローの場合
+                ...(!isFollowing && {
+                  bgcolor: 'text.primary',
+                  color: 'background.default',
+                  '&:hover': {
+                    bgcolor: 'text.primary',
+                    opacity: 0.9,
+                  },
+                }),
               }}
             >
-              {isFollowing ? "フォロー中" : "フォロー"}
+              {isFollowing
+                ? (isHoveringFollow ? 'フォロー解除' : 'フォロー中')
+                : 'フォロー'
+              }
             </Button>
           )}
         </Box>
@@ -255,8 +333,9 @@ export default function ProfilePage() {
         <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
           {profile.location && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <LocationOn fontSize="small" sx={{ color: "text.secondary" }} />
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                📍 {profile.location}
+                {profile.location}
               </Typography>
             </Box>
           )}
@@ -265,9 +344,32 @@ export default function ProfilePage() {
               <LinkIcon fontSize="small" sx={{ color: "text.secondary" }} />
               <Typography
                 variant="body2"
-                sx={{ color: "secondary.main", cursor: "pointer" }}
+                component="a"
+                href={profile.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "rgb(29, 155, 240)",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  }
+                }}
               >
                 {profile.website}
+              </Typography>
+            </Box>
+          )}
+          {profile.birth_date && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <CakeOutlined fontSize="small" sx={{ color: "text.secondary" }} />
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {new Date(profile.birth_date).toLocaleDateString("ja-JP", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </Typography>
             </Box>
           )}
@@ -278,7 +380,7 @@ export default function ProfilePage() {
                 year: "numeric",
                 month: "long",
               })}
-              に登録
+              から利用しています
             </Typography>
           </Box>
         </Box>
@@ -363,6 +465,62 @@ export default function ProfilePage() {
           onSave={handleEditProfileSave}
         />
       )}
+
+      {/* Unfollow Confirmation Dialog */}
+      <Dialog
+        open={unfollowDialogOpen}
+        onClose={() => setUnfollowDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogContent sx={{ pt: 4, px: 4, pb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, fontSize: '20px' }}>
+            @{user?.username} さんのフォローを解除しますか？
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 4, pb: 4, gap: 1.5, flexDirection: 'column' }}>
+          <Button
+            onClick={handleUnfollow}
+            variant="contained"
+            fullWidth
+            sx={{
+              borderRadius: '9999px',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              bgcolor: 'rgb(15, 20, 25)',
+              color: 'white',
+              py: 1.5,
+              fontSize: '15px',
+              '&:hover': {
+                bgcolor: 'rgb(39, 44, 48)',
+              },
+            }}
+          >
+            フォロー解除
+          </Button>
+          <Button
+            onClick={() => setUnfollowDialogOpen(false)}
+            variant="outlined"
+            fullWidth
+            sx={{
+              borderRadius: '9999px',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderColor: 'divider',
+              color: 'text.primary',
+              py: 1.5,
+              fontSize: '15px',
+            }}
+          >
+            キャンセル
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainLayout>
   );
 }

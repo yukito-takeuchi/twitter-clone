@@ -48,7 +48,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         setIsLiked(true);
         setLikeCount((prev) => prev + 1);
       }
-      onUpdate?.();
+      // いいね時はリロード不要（ローカルステートで更新済み）
+      // onUpdate?.();
     } catch (error) {
       console.error('Failed to toggle like:', error);
     } finally {

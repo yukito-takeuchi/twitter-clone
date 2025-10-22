@@ -13,6 +13,12 @@ import {
   Group,
   Verified,
   ListAlt,
+  Chat,
+  MonetizationOn,
+  PersonAdd,
+  Campaign,
+  Mic,
+  Settings,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -24,22 +30,22 @@ export default function LeftSidebar() {
   const menuOpen = Boolean(menuAnchorEl);
 
   const navItems = [
-    { icon: <Home fontSize="large" />, label: 'ホーム', path: '/', active: true },
-    { icon: <Search fontSize="large" />, label: '検索', path: '#', active: false },
-    { icon: <Notifications fontSize="large" />, label: '通知', path: '#', active: false },
-    { icon: <Mail fontSize="large" />, label: 'メッセージ', path: '#', active: false },
-    { icon: <span style={{ fontSize: '28px' }}>𝕏</span>, label: 'Grok', path: '#', active: false },
-    { icon: <ListAlt fontSize="large" />, label: 'リスト', path: '#', active: false },
-    { icon: <Bookmark fontSize="large" />, label: 'ブックマーク', path: '#', active: false },
-    { icon: <Group fontSize="large" />, label: 'コミュニティ', path: '#', active: false },
-    { icon: <Verified fontSize="large" />, label: '認証済みマーク', path: '#', active: false },
+    { icon: <Home fontSize="medium" />, label: 'ホーム', path: '/', active: true },
+    { icon: <Search fontSize="medium" />, label: '検索', path: '#', active: false },
+    { icon: <Notifications fontSize="medium" />, label: '通知', path: '#', active: false },
+    { icon: <Mail fontSize="medium" />, label: 'メッセージ', path: '#', active: false },
+    { icon: <span style={{ fontSize: '24px' }}>𝕏</span>, label: 'Grok', path: '#', active: false },
+    { icon: <ListAlt fontSize="medium" />, label: 'リスト', path: '#', active: false },
+    { icon: <Bookmark fontSize="medium" />, label: 'ブックマーク', path: '#', active: false },
+    { icon: <Group fontSize="medium" />, label: 'コミュニティ', path: '#', active: false },
+    { icon: <Verified fontSize="medium" />, label: '認証済みマーク', path: '#', active: false },
     {
-      icon: <Person fontSize="large" />,
+      icon: <Person fontSize="medium" />,
       label: 'プロフィール',
       path: user ? `/profile/${user.username}` : '#',
       active: !!user
     },
-    { icon: <MoreHoriz fontSize="large" />, label: 'もっと見る', path: '#', active: false },
+    { icon: <MoreHoriz fontSize="medium" />, label: 'もっと見る', path: '#', active: false },
   ];
 
   const handleLogout = async () => {
@@ -70,74 +76,77 @@ export default function LeftSidebar() {
   return (
     <Box
       sx={{
-        height: '100%',
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
         px: 1,
         py: 1,
       }}
     >
-      {/* Logo */}
-      <Box sx={{ p: 1.5, mb: 0.5 }}>
-        <Box
-          sx={{
-            width: 50,
-            height: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%',
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
-            cursor: 'pointer',
-          }}
-          onClick={() => router.push('/')}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="30"
-            height="30"
-            fill="currentColor"
+      {/* Logo + Navigation */}
+      <Box sx={{ flex: 1, maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
+        {/* Logo */}
+        <Box sx={{ p: 1.5, mb: 0.25 }}>
+          <Box
+            sx={{
+              width: 50,
+              height: 50,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+              cursor: 'pointer',
+            }}
+            onClick={() => router.push('/')}
           >
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
+            <svg
+              viewBox="0 0 24 24"
+              width="30"
+              height="30"
+              fill="currentColor"
+            >
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </Box>
         </Box>
-      </Box>
 
-      {/* Navigation */}
-      <List sx={{ flex: 1, px: 0 }}>
+        {/* Navigation */}
+        <List sx={{ px: 0 }}>
         {navItems.map((item) => (
-          <ListItem key={item.label} disablePadding sx={{ mb: 0.25 }}>
+          <ListItem key={item.label} disablePadding sx={{ mb: { xs: 0, sm: 0.125, md: 0.25 } }}>
             <ListItemButton
               onClick={() => item.active && router.push(item.path)}
               disabled={!item.active}
               sx={{
                 borderRadius: '9999px',
-                py: 1.5,
+                py: { xs: 0.25, sm: 0.375, md: 0.5 },
                 px: 2,
                 '&:hover': {
                   bgcolor: 'action.hover',
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 56, color: 'text.primary' }}>
+              <ListItemIcon sx={{ minWidth: { xs: 40, sm: 48, md: 56 }, color: 'text.primary' }}>
                 {item.icon}
               </ListItemIcon>
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
-                  fontSize: '20px',
+                  fontSize: { xs: '16px', sm: '18px', md: '20px' },
                   fontWeight: item.path === '/' || item.path.includes('/profile') ? 'bold' : 'normal',
                 }}
               />
             </ListItemButton>
           </ListItem>
         ))}
-      </List>
+        </List>
+      </Box>
 
       {/* Post Button */}
-      <Box sx={{ px: 2, mb: 2 }}>
+      <Box sx={{ px: 2, mb: 3 }}>
         <Button
           fullWidth
           variant="contained"
@@ -170,14 +179,14 @@ export default function LeftSidebar() {
               p: 1.5,
               borderRadius: '9999px',
               cursor: 'pointer',
-              mb: 1,
+              mb: 2,
               '&:hover': {
                 bgcolor: 'action.hover',
               },
             }}
           >
             <Avatar
-              src={getImageUrl(user.avatar_url || null)}
+              src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}
               sx={{ width: 40, height: 40 }}
             >
               {!user.avatar_url && (user.display_name?.[0] || user.username[0])}

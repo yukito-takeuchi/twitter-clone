@@ -119,7 +119,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       <Box sx={{ display: 'flex', gap: 2 }}>
         {/* Avatar */}
         <Link href={`/profile/${post.username}`} onClick={(e) => e.stopPropagation()}>
-          <Avatar sx={{ width: 40, height: 40, cursor: 'pointer' }}>
+          <Avatar
+            src={post.avatar_url ? getImageUrl(post.avatar_url) : undefined}
+            sx={{ width: 40, height: 40, cursor: 'pointer' }}
+          >
             {post.display_name?.[0] || post.username?.[0] || '?'}
           </Avatar>
         </Link>

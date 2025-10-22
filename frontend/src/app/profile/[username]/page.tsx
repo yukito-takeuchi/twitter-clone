@@ -76,19 +76,29 @@ export default function ProfilePage() {
   };
 
   const handleFollowToggle = async () => {
-    if (!currentUser || !user) return;
+    if (!currentUser || !user || followLoading) return;
+
+    const previousState = isFollowing; // 元の状態を保存
 
     setFollowLoading(true);
+    setIsFollowing(!isFollowing); // 楽観的UI更新（先にUIを変更）
+
     try {
-      if (isFollowing) {
+      if (previousState) {
+        // フォロー中だった → アンフォロー
         await followApi.unfollow(currentUser.id, user.id);
-        setIsFollowing(false);
       } else {
+        // フォローしていなかった → フォロー
         await followApi.follow(currentUser.id, user.id);
-        setIsFollowing(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to toggle follow:", error);
+      // エラー時は元の状態に戻す
+      setIsFollowing(previousState);
+
+      // ユーザーにエラーを通知
+      const errorMessage = error.response?.data?.message || 'フォロー操作に失敗しました';
+      alert(errorMessage);
     } finally {
       setFollowLoading(false);
     }

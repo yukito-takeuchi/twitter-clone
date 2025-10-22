@@ -44,6 +44,8 @@ export interface PostWithStats extends Post {
   avatar_url: string | null;
   like_count: number;
   reply_count: number;
+  retweet_count: number;
+  is_liked_by_current_user?: boolean;
 }
 
 // Like types

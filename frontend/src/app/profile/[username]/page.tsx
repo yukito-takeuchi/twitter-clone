@@ -58,7 +58,7 @@ export default function ProfilePage() {
       setProfile(userData.profile);
 
       // Fetch user's posts
-      const userPosts = await postApi.getByUser(userData.user.id);
+      const userPosts = await postApi.getByUser(userData.user.id, 20, 0, currentUser?.id);
       setPosts(userPosts);
 
       // Check if following (TODO: implement when needed)

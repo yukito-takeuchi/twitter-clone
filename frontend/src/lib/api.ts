@@ -77,28 +77,38 @@ export const postApi = {
     return response.data.data!.post;
   },
 
-  getAll: async (limit = 20, offset = 0): Promise<PostWithStats[]> => {
+  getAll: async (limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
     const response = await api.get<ApiResponse<{ posts: PostWithStats[] }>>(
-      `/posts?limit=${limit}&offset=${offset}`
+      `/posts?${params.toString()}`
     );
     return response.data.data!.posts;
   },
 
-  getById: async (id: string): Promise<PostWithStats> => {
-    const response = await api.get<ApiResponse<{ post: PostWithStats }>>(`/posts/${id}`);
+  getById: async (id: string, currentUserId?: string): Promise<PostWithStats> => {
+    const params = new URLSearchParams();
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ post: PostWithStats }>>(
+      `/posts/${id}${params.toString() ? `?${params.toString()}` : ''}`
+    );
     return response.data.data!.post;
   },
 
-  getByUser: async (userId: string, limit = 20, offset = 0): Promise<PostWithStats[]> => {
+  getByUser: async (userId: string, limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
     const response = await api.get<ApiResponse<{ posts: PostWithStats[] }>>(
-      `/posts/user/${userId}?limit=${limit}&offset=${offset}`
+      `/posts/user/${userId}?${params.toString()}`
     );
     return response.data.data!.posts;
   },
 
-  getTimeline: async (userId: string, limit = 20, offset = 0): Promise<PostWithStats[]> => {
+  getTimeline: async (userId: string, limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
     const response = await api.get<ApiResponse<{ posts: PostWithStats[] }>>(
-      `/posts/timeline/${userId}?limit=${limit}&offset=${offset}`
+      `/posts/timeline/${userId}?${params.toString()}`
     );
     return response.data.data!.posts;
   },
@@ -115,7 +125,7 @@ export const likeApi = {
   },
 
   unlike: async (postId: string, userId: string): Promise<void> => {
-    await api.delete(`/likes/${postId}/${userId}`);
+    await api.delete(`/likes/${userId}/${postId}`);
   },
 
   checkIfLiked: async (userId: string, postId: string): Promise<boolean> => {

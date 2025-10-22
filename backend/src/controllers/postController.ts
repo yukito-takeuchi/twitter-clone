@@ -54,8 +54,9 @@ export const postController = {
   // Get post by ID
   getPostById: asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
-    const post = await PostModel.findByIdWithStats(id);
+    const post = await PostModel.findByIdWithStats(id, currentUserId);
     if (!post) {
       throw new AppError("Post not found", 404);
     }
@@ -73,8 +74,9 @@ export const postController = {
   getAllPosts: asyncHandler(async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
-    const posts = await PostModel.findAll(limit, offset);
+    const posts = await PostModel.findAll(limit, offset, currentUserId);
 
     res.json({
       status: "success",
@@ -94,6 +96,7 @@ export const postController = {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if user exists
     const user = await UserModel.findById(userId);
@@ -101,7 +104,7 @@ export const postController = {
       throw new AppError("User not found", 404);
     }
 
-    const posts = await PostModel.findByUserId(userId, limit, offset);
+    const posts = await PostModel.findByUserId(userId, limit, offset, currentUserId);
 
     res.json({
       status: "success",
@@ -121,6 +124,7 @@ export const postController = {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if user exists
     const user = await UserModel.findById(userId);
@@ -128,7 +132,7 @@ export const postController = {
       throw new AppError("User not found", 404);
     }
 
-    const posts = await PostModel.getTimeline(userId, limit, offset);
+    const posts = await PostModel.getTimeline(userId, limit, offset, currentUserId);
 
     res.json({
       status: "success",
@@ -148,6 +152,7 @@ export const postController = {
     const { id } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if post exists
     const post = await PostModel.findById(id);
@@ -155,7 +160,7 @@ export const postController = {
       throw new AppError("Post not found", 404);
     }
 
-    const replies = await PostModel.getReplies(id, limit, offset);
+    const replies = await PostModel.getReplies(id, limit, offset, currentUserId);
 
     res.json({
       status: "success",

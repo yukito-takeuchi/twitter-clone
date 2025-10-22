@@ -30,7 +30,7 @@ export default function HomePage() {
     try {
       setLoading(true);
       setError('');
-      const posts = await postApi.getTimeline(user.id);
+      const posts = await postApi.getTimeline(user.id, 20, 0, user.id);
       setPosts(posts || []);
     } catch (err: any) {
       console.error('Failed to fetch posts:', err);

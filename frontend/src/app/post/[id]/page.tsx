@@ -53,7 +53,7 @@ export default function PostDetailPage() {
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const postData = await postApi.getById(postId);
+      const postData = await postApi.getById(postId, user?.id);
       setPost(postData);
       setIsLiked(postData.is_liked_by_current_user || false);
       setLikeCount(postData.like_count || 0);

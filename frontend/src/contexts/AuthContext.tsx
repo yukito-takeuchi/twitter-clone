@@ -48,8 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: userData.user.id,
             firebase_uid: userData.user.firebase_uid,
             username: userData.user.username,
+            avatar_url: userData.profile?.avatar_url,
           });
-          setUser(userData.user);
+          // Merge avatar_url from profile into user object
+          const userWithAvatar = {
+            ...userData.user,
+            avatar_url: userData.profile?.avatar_url || null
+          };
+          setUser(userWithAvatar);
         } catch (error) {
           console.error('Failed to fetch user data:', error);
           setUser(null);

@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Button } from '@mui/material';
+import { useState } from 'react';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Button, Menu, MenuItem } from '@mui/material';
 import {
   Home,
   Search,
@@ -19,6 +20,8 @@ import { useRouter } from 'next/navigation';
 export default function LeftSidebar() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchorEl);
 
   const navItems = [
     { icon: <Home fontSize="large" />, label: 'ホーム', path: '/', active: true },
@@ -40,8 +43,20 @@ export default function LeftSidebar() {
   ];
 
   const handleLogout = async () => {
+    setMenuAnchorEl(null);
     await logout();
     router.push('/login');
+  };
+
+  const handleMoreClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserClick = () => {
+    if (user) {
+      router.push(`/profile/${user.username}`);
+    }
   };
 
   const getImageUrl = (url: string | null) => {
@@ -145,53 +160,118 @@ export default function LeftSidebar() {
 
       {/* User Info */}
       {user && (
-        <Box
-          onClick={handleLogout}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            p: 1.5,
-            borderRadius: '9999px',
-            cursor: 'pointer',
-            mb: 1,
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
-          }}
-        >
-          <Avatar
-            src={getImageUrl(user.avatar_url || null)}
-            sx={{ width: 40, height: 40 }}
+        <>
+          <Box
+            onClick={handleUserClick}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              p: 1.5,
+              borderRadius: '9999px',
+              cursor: 'pointer',
+              mb: 1,
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            }}
           >
-            {!user.avatar_url && (user.display_name?.[0] || user.username[0])}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="body2"
+            <Avatar
+              src={getImageUrl(user.avatar_url || null)}
+              sx={{ width: 40, height: 40 }}
+            >
+              {!user.avatar_url && (user.display_name?.[0] || user.username[0])}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 'bold',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {user.display_name || user.username}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                @{user.username}
+              </Typography>
+            </Box>
+            <Box
+              onClick={handleMoreClick}
               sx={{
-                fontWeight: 'bold',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  '& svg': {
+                    color: 'primary.main',
+                  },
+                },
               }}
             >
-              {user.display_name || user.username}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'text.secondary',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              @{user.username}
-            </Typography>
+              <MoreHoriz sx={{ color: 'text.primary' }} />
+            </Box>
           </Box>
-          <MoreHoriz sx={{ color: 'text.primary' }} />
-        </Box>
+
+          {/* Account Menu */}
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={menuOpen}
+            onClose={() => setMenuAnchorEl(null)}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            PaperProps={{
+              sx: {
+                width: 300,
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                mt: -1,
+              },
+            }}
+          >
+            <MenuItem
+              disabled
+              sx={{
+                py: 1.5,
+                px: 2,
+                fontSize: '15px',
+                fontWeight: 'bold',
+              }}
+            >
+              既存のアカウントを追加
+            </MenuItem>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                py: 1.5,
+                px: 2,
+                fontSize: '15px',
+                fontWeight: 'bold',
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              @{user.username} からログアウト
+            </MenuItem>
+          </Menu>
+        </>
       )}
     </Box>
   );

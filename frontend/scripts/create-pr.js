@@ -71,7 +71,7 @@ async function main() {
   }
 
   // 最終的なPRタイトル
-  const fullTitle = `${notionId} ${prType.emoji} ${title}`;
+  const fullTitle = `[${notionId}] ${prType.emoji} ${title}`;
 
   // PR本文作成
   const prBody = `## 概要
@@ -81,7 +81,7 @@ ${title}
 - 
 
 ## Notion
-${notionId}
+[${notionId}]
 
 ## Type
 ${prType.label} ${prType.description}

@@ -114,8 +114,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const getSingleImagePaddingTop = () => {
     if (!imageAspectRatio) return '56.25%'; // Default 16:9
     const paddingPercent = (1 / imageAspectRatio) * 100;
-    // Limit max height to avoid extremely tall images
-    return `${Math.min(paddingPercent, 150)}%`;
+    // Limit max height to 16:9 to keep size reasonable
+    return `${Math.min(paddingPercent, 56.25)}%`;
   };
 
   return (
@@ -244,7 +244,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                       left: 0,
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover',
+                      objectFit: images.length === 1 ? 'contain' : 'cover',
                     }}
                   />
                 </Box>

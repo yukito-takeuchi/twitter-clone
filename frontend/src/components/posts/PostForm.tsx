@@ -146,7 +146,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
                       }}
                     />
                     <IconButton

@@ -194,6 +194,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 border: '1px solid',
                 borderColor: 'divider',
                 height: images.length === 1 ? 'auto' : '288px',
+                width: '100%',
               }}
             >
               {images.map((image, index) => (

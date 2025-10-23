@@ -48,6 +48,7 @@ export default function PostDetailPage() {
   const [replyLoading, setReplyLoading] = useState(false);
   const [replies, setReplies] = useState<PostWithStats[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
     if (postId) {
@@ -119,6 +120,14 @@ export default function PostDetailPage() {
     setImageModalOpen(true);
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (images.length === 1) {
+      const img = e.currentTarget;
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      setImageAspectRatio(aspectRatio);
+    }
+  };
+
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim() || !user || !post || replyLoading) return;
@@ -152,6 +161,14 @@ export default function PostDetailPage() {
   const images = post?.image_url
     ? post.image_url.split(',').map((url) => url.trim())
     : [];
+
+  // Calculate paddingTop for single image based on aspect ratio
+  const getSingleImagePaddingTop = () => {
+    if (!imageAspectRatio) return '56.25%'; // Default 16:9
+    const paddingPercent = (1 / imageAspectRatio) * 100;
+    // Limit max height to avoid extremely tall images
+    return `${Math.min(paddingPercent, 150)}%`;
+  };
 
   if (loading) {
     return (
@@ -270,7 +287,7 @@ export default function PostDetailPage() {
                 onClick={() => handleImageClick(index)}
                 sx={{
                   position: 'relative',
-                  paddingTop: images.length === 1 ? '56.25%' : '0',
+                  paddingTop: images.length === 1 ? getSingleImagePaddingTop() : '0',
                   height: images.length === 1 ? 'auto' : '100%',
                   bgcolor: 'action.hover',
                   overflow: 'hidden',
@@ -287,13 +304,14 @@ export default function PostDetailPage() {
                   component="img"
                   src={getImageUrl(image)}
                   alt={`Image ${index + 1}`}
+                  onLoad={handleImageLoad}
                   sx={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: images.length === 1 ? 'contain' : 'cover',
+                    objectFit: 'cover',
                   }}
                 />
               </Box>

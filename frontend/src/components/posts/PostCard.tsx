@@ -33,6 +33,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -89,6 +90,14 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     setImageModalOpen(true);
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (images.length === 1) {
+      const img = e.currentTarget;
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      setImageAspectRatio(aspectRatio);
+    }
+  };
+
   const getImageUrl = (url: string) => {
     if (url.startsWith('http')) {
       return url;
@@ -100,6 +109,14 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const images = post.image_url
     ? post.image_url.split(',').map((url) => url.trim())
     : [];
+
+  // Calculate paddingTop for single image based on aspect ratio
+  const getSingleImagePaddingTop = () => {
+    if (!imageAspectRatio) return '56.25%'; // Default 16:9
+    const paddingPercent = (1 / imageAspectRatio) * 100;
+    // Limit max height to avoid extremely tall images
+    return `${Math.min(paddingPercent, 150)}%`;
+  };
 
   return (
     <Paper
@@ -203,7 +220,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   onClick={(e) => handleImageClick(e, index)}
                   sx={{
                     position: 'relative',
-                    paddingTop: images.length === 1 ? '56.25%' : '0',
+                    paddingTop: images.length === 1 ? getSingleImagePaddingTop() : '0',
                     height: images.length === 1 ? 'auto' : '100%',
                     bgcolor: 'action.hover',
                     overflow: 'hidden',
@@ -220,13 +237,14 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                     component="img"
                     src={getImageUrl(image)}
                     alt={`Image ${index + 1}`}
+                    onLoad={handleImageLoad}
                     sx={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
                       width: '100%',
                       height: '100%',
-                      objectFit: images.length === 1 ? 'contain' : 'cover',
+                      objectFit: 'cover',
                     }}
                   />
                 </Box>

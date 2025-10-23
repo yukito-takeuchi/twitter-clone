@@ -23,6 +23,9 @@ router.get("/timeline/:userId", validatePagination, postController.getTimeline);
 // Get posts by user
 router.get("/user/:userId", validatePagination, postController.getPostsByUser);
 
+// Get replies by user
+router.get("/user/:userId/replies", validatePagination, postController.getRepliesByUser);
+
 // Get post by ID
 router.get("/:id", postController.getPostById);
 

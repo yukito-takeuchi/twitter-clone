@@ -29,6 +29,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
 import ImageModal from '@/components/common/ImageModal';
+import PostCard from '@/components/posts/PostCard';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -43,12 +44,17 @@ export default function PostDetailPage() {
   const [isLiking, setIsLiking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [replyContent, setReplyContent] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replies, setReplies] = useState<PostWithStats[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
 
   useEffect(() => {
     if (postId) {
       fetchPost();
+      fetchReplies();
     }
-  }, [postId]);
+  }, [postId, user]);
 
   const fetchPost = async () => {
     try {
@@ -61,6 +67,18 @@ export default function PostDetailPage() {
       console.error('Failed to fetch post:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReplies = async () => {
+    try {
+      setRepliesLoading(true);
+      const repliesData = await postApi.getReplies(postId, 20, 0, user?.id);
+      setReplies(repliesData);
+    } catch (error) {
+      console.error('Failed to fetch replies:', error);
+    } finally {
+      setRepliesLoading(false);
     }
   };
 
@@ -99,6 +117,28 @@ export default function PostDetailPage() {
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
     setImageModalOpen(true);
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyContent.trim() || !user || !post || replyLoading) return;
+
+    setReplyLoading(true);
+    try {
+      await postApi.create({
+        user_id: user.id,
+        content: replyContent.trim(),
+        reply_to_id: post.id,
+      });
+      setReplyContent('');
+      fetchReplies(); // Refresh replies list
+      fetchPost(); // Refresh post to update reply_count
+    } catch (error) {
+      console.error('Failed to create reply:', error);
+      alert('返信の投稿に失敗しました');
+    } finally {
+      setReplyLoading(false);
+    }
   };
 
   const getImageUrl = (url: string) => {
@@ -365,9 +405,13 @@ export default function PostDetailPage() {
 
         <Divider />
 
-        {/* Reply Form (Design Only) */}
+        {/* Reply Form */}
         {user && (
-          <Box sx={{ py: 2 }}>
+          <Box
+            component="form"
+            onSubmit={handleReplySubmit}
+            sx={{ py: 2, borderBottom: '1px solid', borderColor: 'divider' }}
+          >
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Avatar
                 src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}
@@ -382,13 +426,28 @@ export default function PostDetailPage() {
                   minRows={2}
                   placeholder="返信をポスト"
                   variant="standard"
-                  disabled
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
                   InputProps={{ disableUnderline: true }}
                   sx={{ fontSize: '18px' }}
                 />
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                  <Button variant="contained" disabled sx={{ borderRadius: '9999px', px: 3 }}>
-                    返信
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={!replyContent.trim() || replyLoading}
+                    sx={{
+                      borderRadius: '9999px',
+                      px: 3,
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                      bgcolor: 'rgb(29, 155, 240)',
+                      '&:hover': {
+                        bgcolor: 'rgb(26, 140, 216)',
+                      },
+                    }}
+                  >
+                    {replyLoading ? '送信中...' : '返信'}
                   </Button>
                 </Box>
               </Box>
@@ -396,11 +455,21 @@ export default function PostDetailPage() {
           </Box>
         )}
 
-        {/* Replies (Design Only) */}
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
-            返信はまだありません
-          </Typography>
+        {/* Replies */}
+        <Box>
+          {repliesLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : replies.length === 0 ? (
+            <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
+              返信はまだありません
+            </Typography>
+          ) : (
+            replies.map((reply) => (
+              <PostCard key={reply.id} post={reply} onUpdate={fetchReplies} />
+            ))
+          )}
         </Box>
       </Box>
 

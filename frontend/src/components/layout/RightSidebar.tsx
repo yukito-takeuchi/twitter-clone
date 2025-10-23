@@ -20,13 +20,16 @@ export default function RightSidebar() {
   return (
     <Box
       sx={{
-        height: '100vh',
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
         px: 2.5,
         py: 1,
-        overflowY: 'hidden',
-        overflowX: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE and Edge
       }}
     >
       {/* Search Box */}
@@ -54,8 +57,8 @@ export default function RightSidebar() {
         />
       </Box>
 
-      {/* Scrollable Content Area */}
-      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      {/* Content Area */}
+      <Box>
         {/* What's Happening (上に配置) */}
         <Paper
         elevation={0}
@@ -69,7 +72,7 @@ export default function RightSidebar() {
       >
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px', mb: 2 }}>
-            いまどうしてる？
+            「いま」を見つけよう
           </Typography>
 
           {trendingTopics.map((trend, index) => (

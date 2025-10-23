@@ -54,7 +54,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
       // Upload images if any
       if (selectedFiles.length > 0) {
         const urls = await imageApi.uploadImages(selectedFiles, user.id);
-        imageUrl = urls[0]; // For now, use first image URL
+        imageUrl = urls.join(','); // Join all URLs with commas
       }
 
       await postApi.create({
@@ -146,7 +146,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
                       }}
                     />
                     <IconButton

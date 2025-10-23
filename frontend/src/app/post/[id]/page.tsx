@@ -48,6 +48,7 @@ export default function PostDetailPage() {
   const [replyLoading, setReplyLoading] = useState(false);
   const [replies, setReplies] = useState<PostWithStats[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
     if (postId) {
@@ -119,6 +120,14 @@ export default function PostDetailPage() {
     setImageModalOpen(true);
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (images.length === 1) {
+      const img = e.currentTarget;
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      setImageAspectRatio(aspectRatio);
+    }
+  };
+
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim() || !user || !post || replyLoading) return;
@@ -152,6 +161,14 @@ export default function PostDetailPage() {
   const images = post?.image_url
     ? post.image_url.split(',').map((url) => url.trim())
     : [];
+
+  // Calculate paddingTop for single image based on aspect ratio
+  const getSingleImagePaddingTop = () => {
+    if (!imageAspectRatio) return '56.25%'; // Default 16:9
+    const paddingPercent = (1 / imageAspectRatio) * 100;
+    // Limit max height to 16:9 to keep size reasonable
+    return `${Math.min(paddingPercent, 56.25)}%`;
+  };
 
   if (loading) {
     return (
@@ -245,13 +262,23 @@ export default function PostDetailPage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: images.length === 1 ? '1fr' : '1fr 1fr',
+              gridTemplateColumns:
+                images.length === 1 ? '1fr' :
+                images.length === 2 ? '1fr 1fr' :
+                images.length === 3 ? '2fr 1fr' :
+                '1fr 1fr',
+              gridTemplateRows:
+                images.length === 3 ? '1fr 1fr' :
+                images.length === 4 ? '1fr 1fr' :
+                'auto',
               gap: 0.5,
               mb: 2,
               borderRadius: 2,
               overflow: 'hidden',
               border: '1px solid',
               borderColor: 'divider',
+              height: images.length === 1 ? 'auto' : '288px',
+              width: '100%',
             }}
           >
             {images.map((image, index) => (
@@ -260,10 +287,14 @@ export default function PostDetailPage() {
                 onClick={() => handleImageClick(index)}
                 sx={{
                   position: 'relative',
-                  paddingTop: images.length === 1 ? '56.25%' : '100%',
+                  paddingTop: images.length === 1 ? getSingleImagePaddingTop() : '0',
+                  height: images.length === 1 ? 'auto' : '100%',
                   bgcolor: 'action.hover',
                   overflow: 'hidden',
                   cursor: 'pointer',
+                  ...(images.length === 3 && index === 0 && {
+                    gridRow: '1 / 3',
+                  }),
                   '&:hover': {
                     opacity: 0.9,
                   },
@@ -273,13 +304,14 @@ export default function PostDetailPage() {
                   component="img"
                   src={getImageUrl(image)}
                   alt={`Image ${index + 1}`}
+                  onLoad={handleImageLoad}
                   sx={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
+                    objectFit: images.length === 1 ? 'contain' : 'cover',
                   }}
                 />
               </Box>

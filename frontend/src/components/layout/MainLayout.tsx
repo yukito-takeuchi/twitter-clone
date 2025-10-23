@@ -66,11 +66,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
             flex: { xs: 0, lg: 1 },
             maxWidth: { xs: 0, lg: '350px' },
             display: { xs: 'none', lg: 'block' },
+            minWidth: { lg: '350px' },
             position: 'sticky',
             top: 0,
             height: '100vh',
-            overflowY: 'auto',
-            minWidth: { lg: '350px' },
+            overflow: 'hidden',
           }}
         >
           <RightSidebar />

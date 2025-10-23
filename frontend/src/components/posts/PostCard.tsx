@@ -178,7 +178,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: images.length === 1 ? '1fr' : '1fr 1fr',
+                gridTemplateColumns:
+                  images.length === 1 ? '1fr' :
+                  images.length === 2 ? '1fr 1fr' :
+                  images.length === 3 ? '2fr 1fr' :
+                  '1fr 1fr',
+                gridTemplateRows:
+                  images.length === 3 ? '1fr 1fr' :
+                  images.length === 4 ? '1fr 1fr' :
+                  'auto',
                 gap: 0.5,
                 mt: 2,
                 borderRadius: 2,
@@ -197,6 +205,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                     bgcolor: 'action.hover',
                     overflow: 'hidden',
                     cursor: 'pointer',
+                    ...(images.length === 3 && index === 0 && {
+                      gridRow: '1 / 3',
+                    }),
                     '&:hover': {
                       opacity: 0.9,
                     },

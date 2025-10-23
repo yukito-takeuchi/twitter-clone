@@ -125,6 +125,15 @@ export const postApi = {
     );
     return response.data.data!.replies;
   },
+
+  getRepliesByUser: async (userId: string, limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ replies: PostWithStats[] }>>(
+      `/posts/user/${userId}/replies?${params.toString()}`
+    );
+    return response.data.data!.replies;
+  },
 };
 
 // Like API

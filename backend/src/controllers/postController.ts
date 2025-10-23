@@ -91,7 +91,7 @@ export const postController = {
     });
   }),
 
-  // Get posts by user ID
+  // Get posts by user ID (excluding replies)
   getPostsByUser: asyncHandler(async (req: Request, res: Response) => {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -114,6 +114,34 @@ export const postController = {
           limit,
           offset,
           count: posts.length,
+        },
+      },
+    });
+  }),
+
+  // Get replies by user ID
+  getRepliesByUser: asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
+
+    // Check if user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const replies = await PostModel.findRepliesByUserId(userId, limit, offset, currentUserId);
+
+    res.json({
+      status: "success",
+      data: {
+        replies,
+        pagination: {
+          limit,
+          offset,
+          count: replies.length,
         },
       },
     });

@@ -41,6 +41,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<PostWithStats[]>([]);
+  const [replies, setReplies] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -62,9 +63,13 @@ export default function ProfilePage() {
       setUser(userData.user);
       setProfile(userData.profile);
 
-      // Fetch user's posts
+      // Fetch user's posts (excluding replies)
       const userPosts = await postApi.getByUser(userData.user.id, 20, 0, currentUser?.id);
       setPosts(userPosts);
+
+      // Fetch user's replies
+      const userReplies = await postApi.getRepliesByUser(userData.user.id, 20, 0, currentUser?.id);
+      setReplies(userReplies);
 
       // Check if following
       if (currentUser && userData.user.id !== currentUser.id) {
@@ -446,7 +451,22 @@ export default function ProfilePage() {
             )}
           </>
         )}
-        {tabValue !== 0 && (
+        {tabValue === 1 && (
+          <>
+            {replies.length === 0 ? (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography variant="h6" sx={{ color: "text.secondary" }}>
+                  まだ返信がありません
+                </Typography>
+              </Box>
+            ) : (
+              replies.map((reply) => (
+                <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
+              ))
+            )}
+          </>
+        )}
+        {(tabValue === 2 || tabValue === 3) && (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               この機能は実装中です

@@ -82,7 +82,7 @@ export class PostModel {
     return result.rows[0] || null;
   }
 
-  // Get posts by user ID
+  // Get posts by user ID (excluding replies)
   static async findByUserId(
     userId: string,
     limit: number = 20,
@@ -100,7 +100,7 @@ export class PostModel {
         END as is_liked_by_current_user,
         0 as retweet_count
        FROM posts_with_stats pws
-       WHERE user_id = $1
+       WHERE user_id = $1 AND reply_to_id IS NULL
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
@@ -108,7 +108,33 @@ export class PostModel {
     return result.rows;
   }
 
-  // Get timeline posts (user's own posts + posts from followed users)
+  // Get replies by user ID
+  static async findRepliesByUserId(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0,
+    currentUserId?: string
+  ): Promise<PostWithStats[]> {
+    const result = await query(
+      `SELECT
+        pws.*,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        0 as retweet_count
+       FROM posts_with_stats pws
+       WHERE user_id = $1 AND reply_to_id IS NOT NULL
+       ORDER BY created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [userId, limit, offset, currentUserId || null]
+    );
+    return result.rows;
+  }
+
+  // Get timeline posts (user's own posts + posts from followed users, excluding replies)
   static async getTimeline(
     userId: string,
     limit: number = 20,
@@ -126,10 +152,11 @@ export class PostModel {
         END as is_liked_by_current_user,
         0 as retweet_count
        FROM posts_with_stats p
-       WHERE p.user_id = $1
+       WHERE (p.user_id = $1
           OR p.user_id IN (
             SELECT following_id FROM follows WHERE follower_id = $1
-          )
+          ))
+          AND p.reply_to_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
@@ -137,7 +164,7 @@ export class PostModel {
     return result.rows;
   }
 
-  // Get all posts (public feed)
+  // Get all posts (public feed, excluding replies)
   static async findAll(limit: number = 20, offset: number = 0, currentUserId?: string): Promise<PostWithStats[]> {
     const result = await query(
       `SELECT
@@ -150,6 +177,7 @@ export class PostModel {
         END as is_liked_by_current_user,
         0 as retweet_count
        FROM posts_with_stats pws
+       WHERE reply_to_id IS NULL
        ORDER BY created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset, currentUserId || null]

@@ -193,6 +193,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 overflow: 'hidden',
                 border: '1px solid',
                 borderColor: 'divider',
+                height: images.length === 1 ? 'auto' : '288px',
               }}
             >
               {images.map((image, index) => (
@@ -201,7 +202,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   onClick={(e) => handleImageClick(e, index)}
                   sx={{
                     position: 'relative',
-                    paddingTop: images.length === 1 ? '56.25%' : '100%',
+                    paddingTop: images.length === 1 ? '56.25%' : '0',
+                    height: images.length === 1 ? 'auto' : '100%',
                     bgcolor: 'action.hover',
                     overflow: 'hidden',
                     cursor: 'pointer',

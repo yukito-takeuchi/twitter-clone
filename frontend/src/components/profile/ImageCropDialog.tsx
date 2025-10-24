@@ -12,7 +12,19 @@ import {
   Typography,
 } from "@mui/material";
 import Cropper from "react-easy-crop";
-import { Area, Point } from "react-easy-crop/types";
+
+// Define types locally instead of importing from react-easy-crop/types
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface Area {
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}
 
 interface ImageCropDialogProps {
   open: boolean;

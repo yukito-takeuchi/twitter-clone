@@ -11,6 +11,7 @@ import {
   BarChart,
   BookmarkBorder,
   Share,
+  MoreHoriz,
 } from '@mui/icons-material';
 import { PostWithStats } from '@/types';
 import { likeApi } from '@/lib/api';
@@ -19,6 +20,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
 import ImageModal from '@/components/common/ImageModal';
+import PostMenuDialog from '@/components/posts/PostMenuDialog';
+import DeletePostDialog from '@/components/posts/DeletePostDialog';
+import EditPostDialog from '@/components/posts/EditPostDialog';
 
 interface PostCardProps {
   post: PostWithStats;
@@ -34,6 +38,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -121,6 +128,30 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     return `${Math.min(paddingPercent, 56.25)}%`;
   };
 
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(true);
+  };
+
+  const handleEdit = () => {
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleted = () => {
+    onUpdate?.();
+  };
+
+  const handleUpdated = () => {
+    onUpdate?.();
+  };
+
+  // Check if current user is the post owner
+  const isOwnPost = user && post.user_id === user.id;
+
   return (
     <Paper
       elevation={0}
@@ -178,6 +209,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               {formatTime(post.created_at)}
             </Typography>
+
+            {/* More icon - only show for own posts */}
+            {isOwnPost && (
+              <Box sx={{ ml: 'auto' }}>
+                <IconButton
+                  size="small"
+                  onClick={handleMoreClick}
+                  sx={{
+                    color: 'text.secondary',
+                    '&:hover': {
+                      bgcolor: 'rgba(29, 155, 240, 0.1)',
+                      color: '#1D9BF0',
+                    },
+                  }}
+                >
+                  <MoreHoriz fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
 
           {/* Post Content */}
@@ -393,6 +443,31 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           onClose={() => setImageModalOpen(false)}
         />
       )}
+
+      {/* Post Menu Dialog */}
+      <PostMenuDialog
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeletePostDialog
+        open={deleteDialogOpen}
+        postId={post.id}
+        onClose={() => setDeleteDialogOpen(false)}
+        onDeleted={handleDeleted}
+      />
+
+      {/* Edit Post Dialog */}
+      <EditPostDialog
+        open={editDialogOpen}
+        postId={post.id}
+        initialContent={post.content}
+        onClose={() => setEditDialogOpen(false)}
+        onUpdated={handleUpdated}
+      />
     </Paper>
   );
 }

@@ -73,6 +73,7 @@ export default function EditPostDialog({
           minHeight: 300,
         },
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <Box

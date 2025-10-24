@@ -27,16 +27,22 @@ export default function PostMenuDialog({ open, onClose, onEdit, onDelete }: Post
     onDelete();
   };
 
+  const handleClose = (event: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
+    // Stop event propagation to prevent parent PostCard from navigating
+    onClose();
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       PaperProps={{
         sx: {
           borderRadius: 2,
           minWidth: 320,
         },
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <List sx={{ py: 1 }}>
         {/* 削除 - 実装 */}

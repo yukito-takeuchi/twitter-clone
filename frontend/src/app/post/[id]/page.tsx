@@ -20,6 +20,7 @@ import {
   Favorite,
   Share,
   BarChart,
+  MoreHoriz,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
@@ -31,6 +32,9 @@ import Link from 'next/link';
 import ImageModal from '@/components/common/ImageModal';
 import PostCard from '@/components/posts/PostCard';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import PostMenuDialog from '@/components/posts/PostMenuDialog';
+import DeletePostDialog from '@/components/posts/DeletePostDialog';
+import EditPostDialog from '@/components/posts/EditPostDialog';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -50,6 +54,9 @@ export default function PostDetailPage() {
   const [replies, setReplies] = useState<PostWithStats[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Pagination for replies
   const [repliesLoadingMore, setRepliesLoadingMore] = useState(false);
@@ -205,6 +212,32 @@ export default function PostDetailPage() {
     return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
   };
 
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(true);
+  };
+
+  const handleEdit = () => {
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleted = () => {
+    // Navigate back after deletion
+    router.back();
+  };
+
+  const handleUpdated = () => {
+    // Refresh post after edit
+    fetchPost();
+  };
+
+  // Check if current user is the post owner
+  const isOwnPost = user && post && post.user_id === user.id;
+
   // Parse image_url - could be a single URL or comma-separated URLs
   const images = post?.image_url
     ? post.image_url.split(',').map((url) => url.trim())
@@ -277,7 +310,7 @@ export default function PostDetailPage() {
               {post.display_name?.[0] || post.username?.[0] || '?'}
             </Avatar>
           </Link>
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Link
               href={`/profile/${post.username}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -290,6 +323,22 @@ export default function PostDetailPage() {
               @{post.username}
             </Typography>
           </Box>
+
+          {/* More icon - only show for own posts */}
+          {isOwnPost && (
+            <IconButton
+              onClick={handleMoreClick}
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  bgcolor: 'rgba(29, 155, 240, 0.1)',
+                  color: '#1D9BF0',
+                },
+              }}
+            >
+              <MoreHoriz />
+            </IconButton>
+          )}
         </Box>
 
         {/* Content */}
@@ -584,6 +633,35 @@ export default function PostDetailPage() {
           open={imageModalOpen}
           onClose={() => setImageModalOpen(false)}
         />
+      )}
+
+      {/* Post Menu Dialog */}
+      {post && (
+        <>
+          <PostMenuDialog
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <DeletePostDialog
+            open={deleteDialogOpen}
+            postId={post.id}
+            onClose={() => setDeleteDialogOpen(false)}
+            onDeleted={handleDeleted}
+          />
+
+          {/* Edit Post Dialog */}
+          <EditPostDialog
+            open={editDialogOpen}
+            postId={post.id}
+            initialContent={post.content}
+            onClose={() => setEditDialogOpen(false)}
+            onUpdated={handleUpdated}
+          />
+        </>
       )}
     </MainLayout>
   );

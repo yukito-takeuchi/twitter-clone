@@ -34,10 +34,16 @@ export default function DeletePostDialog({ open, postId, onClose, onDeleted }: D
     }
   };
 
+  const handleClose = () => {
+    if (!deleting) {
+      onClose();
+    }
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="xs"
       fullWidth
       PaperProps={{
@@ -45,6 +51,7 @@ export default function DeletePostDialog({ open, postId, onClose, onDeleted }: D
           borderRadius: 2,
         },
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <DialogContent sx={{ pt: 4, px: 4, pb: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, fontSize: '20px' }}>
@@ -77,7 +84,7 @@ export default function DeletePostDialog({ open, postId, onClose, onDeleted }: D
           {deleting ? '削除中...' : '削除'}
         </Button>
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           disabled={deleting}
           variant="outlined"
           fullWidth

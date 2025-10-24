@@ -57,9 +57,9 @@ export default function FollowsPage() {
 
       // Fetch all follow data with currentUserId for is_following flag
       const [mutualData, followersData, followingData] = await Promise.all([
-        followApi.getMutualFollows(userData.user.id, 1000, 0, currentUser?.id),
-        followApi.getFollowers(userData.user.id, 1000, 0, currentUser?.id),
-        followApi.getFollowing(userData.user.id, 1000, 0, currentUser?.id),
+        followApi.getMutualFollows(userData.user.id, 100, 0, currentUser?.id),
+        followApi.getFollowers(userData.user.id, 100, 0, currentUser?.id),
+        followApi.getFollowing(userData.user.id, 100, 0, currentUser?.id),
       ]);
 
       // Transform data to UserWithProfile format

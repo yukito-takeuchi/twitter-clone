@@ -175,6 +175,47 @@ export const followApi = {
     );
     return response.data.data!.is_following;
   },
+
+  getFollowers: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ followers: any[]; total_followers: number }>>(
+      `/follows/followers/${userId}?${params.toString()}`
+    );
+    return response.data.data!;
+  },
+
+  getFollowing: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ following: any[]; total_following: number }>>(
+      `/follows/following/${userId}?${params.toString()}`
+    );
+    return response.data.data!;
+  },
+
+  getMutualFollows: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ mutual_follows: any[]; total_mutual?: number }>>(
+      `/follows/mutual/${userId}?${params.toString()}`
+    );
+    return response.data.data!;
+  },
+
+  getFollowerCount: async (userId: string): Promise<number> => {
+    const response = await api.get<ApiResponse<{ followers: any[]; total_followers: number }>>(
+      `/follows/followers/${userId}?limit=0`
+    );
+    return response.data.data!.total_followers;
+  },
+
+  getFollowingCount: async (userId: string): Promise<number> => {
+    const response = await api.get<ApiResponse<{ following: any[]; total_following: number }>>(
+      `/follows/following/${userId}?limit=0`
+    );
+    return response.data.data!.total_following;
+  },
 };
 
 // Image API

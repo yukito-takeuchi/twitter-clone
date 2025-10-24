@@ -64,6 +64,20 @@ export interface Follow {
   created_at: string;
 }
 
+export interface UserWithProfile {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  is_following?: boolean;
+}
+
+export interface FollowStats {
+  follower_count: number;
+  following_count: number;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   status: string;

@@ -50,6 +50,8 @@ export default function ProfilePage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [unfollowDialogOpen, setUnfollowDialogOpen] = useState(false);
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   // Pagination for posts tab
   const [postsLoadingMore, setPostsLoadingMore] = useState(false);
@@ -99,6 +101,14 @@ export default function ProfilePage() {
       } else {
         setIsFollowing(false);
       }
+
+      // Fetch follower/following counts
+      const [followers, following] = await Promise.all([
+        followApi.getFollowerCount(userData.user.id),
+        followApi.getFollowingCount(userData.user.id),
+      ]);
+      setFollowerCount(followers);
+      setFollowingCount(following);
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
@@ -479,19 +489,49 @@ export default function ProfilePage() {
 
         {/* Follow Stats */}
         <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-          <Box sx={{ display: "flex", gap: 0.5, cursor: "pointer" }}>
-            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              123
+          <Box
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/profile/${username}/follows?tab=following`);
+            }}
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              cursor: "pointer",
+              '&:hover': {
+                '& .count, & .label': {
+                  textDecoration: 'underline',
+                },
+              },
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: "bold" }} className="count">
+              {followingCount}
             </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }} className="label">
               フォロー中
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", gap: 0.5, cursor: "pointer" }}>
-            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              456
+          <Box
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/profile/${username}/follows?tab=followers`);
+            }}
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              cursor: "pointer",
+              '&:hover': {
+                '& .count, & .label': {
+                  textDecoration: 'underline',
+                },
+              },
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: "bold" }} className="count">
+              {followerCount}
             </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }} className="label">
               フォロワー
             </Typography>
           </Box>

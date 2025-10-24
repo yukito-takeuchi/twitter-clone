@@ -69,6 +69,7 @@ export const followController = {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if user exists
     const user = await UserModel.findById(userId);
@@ -76,7 +77,7 @@ export const followController = {
       throw new AppError("User not found", 404);
     }
 
-    const followers = await FollowModel.getFollowers(userId, limit, offset);
+    const followers = await FollowModel.getFollowers(userId, limit, offset, currentUserId);
     const count = await FollowModel.getFollowerCount(userId);
 
     res.json({
@@ -98,6 +99,7 @@ export const followController = {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if user exists
     const user = await UserModel.findById(userId);
@@ -105,7 +107,7 @@ export const followController = {
       throw new AppError("User not found", 404);
     }
 
-    const following = await FollowModel.getFollowing(userId, limit, offset);
+    const following = await FollowModel.getFollowing(userId, limit, offset, currentUserId);
     const count = await FollowModel.getFollowingCount(userId);
 
     res.json({
@@ -127,6 +129,7 @@ export const followController = {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
+    const currentUserId = req.query.currentUserId as string | undefined;
 
     // Check if user exists
     const user = await UserModel.findById(userId);
@@ -134,7 +137,7 @@ export const followController = {
       throw new AppError("User not found", 404);
     }
 
-    const mutualFollows = await FollowModel.getMutualFollows(userId, limit, offset);
+    const mutualFollows = await FollowModel.getMutualFollows(userId, limit, offset, currentUserId);
 
     res.json({
       status: "success",

@@ -55,11 +55,11 @@ export default function FollowsPage() {
       const userData = await userApi.getByUsername(username);
       setUser(userData.user);
 
-      // Fetch all follow data
+      // Fetch all follow data with currentUserId for is_following flag
       const [mutualData, followersData, followingData] = await Promise.all([
-        followApi.getMutualFollows(userData.user.id, 1000, 0),
-        followApi.getFollowers(userData.user.id, 1000, 0),
-        followApi.getFollowing(userData.user.id, 1000, 0),
+        followApi.getMutualFollows(userData.user.id, 1000, 0, currentUser?.id),
+        followApi.getFollowers(userData.user.id, 1000, 0, currentUser?.id),
+        followApi.getFollowing(userData.user.id, 1000, 0, currentUser?.id),
       ]);
 
       // Transform data to UserWithProfile format
@@ -72,7 +72,7 @@ export default function FollowsPage() {
         is_following: item.is_following,
       });
 
-      setMutualFollows(mutualData.mutual.map(transformUser));
+      setMutualFollows((mutualData.mutual_follows || mutualData.mutual || []).map(transformUser));
       setFollowers(followersData.followers.map(transformUser));
       setFollowing(followingData.following.map(transformUser));
     } catch (error) {

@@ -176,25 +176,28 @@ export const followApi = {
     return response.data.data!.is_following;
   },
 
-  getFollowers: async (userId: string, limit = 20, offset = 0) => {
+  getFollowers: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
     const response = await api.get<ApiResponse<{ followers: any[]; total_followers: number }>>(
       `/follows/followers/${userId}?${params.toString()}`
     );
     return response.data.data!;
   },
 
-  getFollowing: async (userId: string, limit = 20, offset = 0) => {
+  getFollowing: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
     const response = await api.get<ApiResponse<{ following: any[]; total_following: number }>>(
       `/follows/following/${userId}?${params.toString()}`
     );
     return response.data.data!;
   },
 
-  getMutualFollows: async (userId: string, limit = 20, offset = 0) => {
+  getMutualFollows: async (userId: string, limit = 20, offset = 0, currentUserId?: string) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-    const response = await api.get<ApiResponse<{ mutual: any[]; total_mutual: number }>>(
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ mutual_follows: any[]; total_mutual?: number }>>(
       `/follows/mutual/${userId}?${params.toString()}`
     );
     return response.data.data!;

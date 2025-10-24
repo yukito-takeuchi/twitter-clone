@@ -65,17 +65,23 @@ export class FollowModel {
   static async getFollowers(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<any[]> {
     const result = await query(
-      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio, f.created_at
+      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio, f.created_at,
+              CASE
+                WHEN $4::uuid IS NOT NULL THEN
+                  EXISTS(SELECT 1 FROM follows WHERE follower_id = $4 AND following_id = u.id)
+                ELSE false
+              END as is_following
        FROM follows f
        JOIN users u ON f.follower_id = u.id
        LEFT JOIN profiles p ON u.id = p.user_id
        WHERE f.following_id = $1
        ORDER BY f.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
+      [userId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }
@@ -84,17 +90,23 @@ export class FollowModel {
   static async getFollowing(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<any[]> {
     const result = await query(
-      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio, f.created_at
+      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio, f.created_at,
+              CASE
+                WHEN $4::uuid IS NOT NULL THEN
+                  EXISTS(SELECT 1 FROM follows WHERE follower_id = $4 AND following_id = u.id)
+                ELSE false
+              END as is_following
        FROM follows f
        JOIN users u ON f.following_id = u.id
        LEFT JOIN profiles p ON u.id = p.user_id
        WHERE f.follower_id = $1
        ORDER BY f.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
+      [userId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }
@@ -103,10 +115,16 @@ export class FollowModel {
   static async getMutualFollows(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    currentUserId?: string
   ): Promise<any[]> {
     const result = await query(
-      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio
+      `SELECT u.id, u.username, u.display_name, p.avatar_url, p.bio,
+              CASE
+                WHEN $4::uuid IS NOT NULL THEN
+                  EXISTS(SELECT 1 FROM follows WHERE follower_id = $4 AND following_id = u.id)
+                ELSE false
+              END as is_following
        FROM follows f1
        JOIN follows f2 ON f1.following_id = f2.follower_id AND f1.follower_id = f2.following_id
        JOIN users u ON f1.following_id = u.id
@@ -114,7 +132,7 @@ export class FollowModel {
        WHERE f1.follower_id = $1
        ORDER BY f1.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
+      [userId, limit, offset, currentUserId || null]
     );
     return result.rows;
   }

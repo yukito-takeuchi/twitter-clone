@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Box,
@@ -31,6 +31,7 @@ import PostCard from "@/components/posts/PostCard";
 import ProfileEditDialog from "@/components/profile/ProfileEditDialog";
 import { userApi, postApi, followApi } from "@/lib/api";
 import type { User, Profile, PostWithStats } from "@/types";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -50,6 +51,18 @@ export default function ProfilePage() {
   const [unfollowDialogOpen, setUnfollowDialogOpen] = useState(false);
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
 
+  // Pagination for posts tab
+  const [postsLoadingMore, setPostsLoadingMore] = useState(false);
+  const [postsHasMore, setPostsHasMore] = useState(true);
+  const [postsOffset, setPostsOffset] = useState(0);
+
+  // Pagination for replies tab
+  const [repliesLoadingMore, setRepliesLoadingMore] = useState(false);
+  const [repliesHasMore, setRepliesHasMore] = useState(true);
+  const [repliesOffset, setRepliesOffset] = useState(0);
+
+  const LIMIT = 10;
+
   useEffect(() => {
     if (username && !authLoading) {
       fetchUserData();
@@ -59,17 +72,25 @@ export default function ProfilePage() {
   const fetchUserData = async () => {
     try {
       setLoading(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const userData = await userApi.getByUsername(username);
       setUser(userData.user);
       setProfile(userData.profile);
 
-      // Fetch user's posts (excluding replies)
-      const userPosts = await postApi.getByUser(userData.user.id, 20, 0, currentUser?.id);
+      // Fetch user's posts (excluding replies) - initial 10 posts
+      const userPosts = await postApi.getByUser(userData.user.id, LIMIT, 0, currentUser?.id);
       setPosts(userPosts);
+      setPostsOffset(LIMIT);
+      setPostsHasMore((userPosts || []).length >= LIMIT);
 
-      // Fetch user's replies
-      const userReplies = await postApi.getRepliesByUser(userData.user.id, 20, 0, currentUser?.id);
+      // Fetch user's replies - initial 10 replies
+      const userReplies = await postApi.getRepliesByUser(userData.user.id, LIMIT, 0, currentUser?.id);
       setReplies(userReplies);
+      setRepliesOffset(LIMIT);
+      setRepliesHasMore((userReplies || []).length >= LIMIT);
 
       // Check if following
       if (currentUser && userData.user.id !== currentUser.id) {
@@ -125,6 +146,72 @@ export default function ProfilePage() {
   const handleEditProfileSave = () => {
     fetchUserData();
   };
+
+  // Load more posts
+  const loadMorePosts = useCallback(async () => {
+    if (!user || postsLoadingMore || !postsHasMore) return;
+
+    try {
+      setPostsLoadingMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const morePosts = await postApi.getByUser(user.id, LIMIT, postsOffset, currentUser?.id);
+
+      if (morePosts && morePosts.length > 0) {
+        setPosts(prev => [...prev, ...morePosts]);
+        setPostsOffset(prev => prev + LIMIT);
+        setPostsHasMore(morePosts.length >= LIMIT);
+      } else {
+        setPostsHasMore(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more posts:", error);
+    } finally {
+      setPostsLoadingMore(false);
+    }
+  }, [user, postsLoadingMore, postsHasMore, postsOffset, currentUser, LIMIT]);
+
+  // Load more replies
+  const loadMoreReplies = useCallback(async () => {
+    if (!user || repliesLoadingMore || !repliesHasMore) return;
+
+    try {
+      setRepliesLoadingMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const moreReplies = await postApi.getRepliesByUser(user.id, LIMIT, repliesOffset, currentUser?.id);
+
+      if (moreReplies && moreReplies.length > 0) {
+        setReplies(prev => [...prev, ...moreReplies]);
+        setRepliesOffset(prev => prev + LIMIT);
+        setRepliesHasMore(moreReplies.length >= LIMIT);
+      } else {
+        setRepliesHasMore(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more replies:", error);
+    } finally {
+      setRepliesLoadingMore(false);
+    }
+  }, [user, repliesLoadingMore, repliesHasMore, repliesOffset, currentUser, LIMIT]);
+
+  // Infinite scroll for posts tab
+  const postsSentinelRef = useInfiniteScroll({
+    onLoadMore: loadMorePosts,
+    hasMore: postsHasMore,
+    loading: postsLoadingMore,
+  });
+
+  // Infinite scroll for replies tab
+  const repliesSentinelRef = useInfiniteScroll({
+    onLoadMore: loadMoreReplies,
+    hasMore: repliesHasMore,
+    loading: repliesLoadingMore,
+  });
 
   const getImageUrl = (url: string | null) => {
     if (!url) return "";
@@ -445,9 +532,32 @@ export default function ProfilePage() {
                 </Typography>
               </Box>
             ) : (
-              posts.map((post) => (
-                <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
-              ))
+              <>
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
+                ))}
+
+                {/* Loading More Indicator */}
+                {postsLoadingMore && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+
+                {/* Sentinel Element for Infinite Scroll */}
+                {postsHasMore && !postsLoadingMore && (
+                  <div ref={postsSentinelRef} style={{ height: '20px' }} />
+                )}
+
+                {/* No More Posts Message */}
+                {!postsHasMore && posts.length > 0 && (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      すべての投稿を表示しました
+                    </Typography>
+                  </Box>
+                )}
+              </>
             )}
           </>
         )}
@@ -460,9 +570,32 @@ export default function ProfilePage() {
                 </Typography>
               </Box>
             ) : (
-              replies.map((reply) => (
-                <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
-              ))
+              <>
+                {replies.map((reply) => (
+                  <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
+                ))}
+
+                {/* Loading More Indicator */}
+                {repliesLoadingMore && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+
+                {/* Sentinel Element for Infinite Scroll */}
+                {repliesHasMore && !repliesLoadingMore && (
+                  <div ref={repliesSentinelRef} style={{ height: '20px' }} />
+                )}
+
+                {/* No More Replies Message */}
+                {!repliesHasMore && replies.length > 0 && (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      すべての返信を表示しました
+                    </Typography>
+                  </Box>
+                )}
+              </>
             )}
           </>
         )}

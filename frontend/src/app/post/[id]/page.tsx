@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Box,
@@ -20,6 +20,7 @@ import {
   Favorite,
   Share,
   BarChart,
+  MoreHoriz,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
@@ -30,6 +31,10 @@ import { ja } from 'date-fns/locale';
 import Link from 'next/link';
 import ImageModal from '@/components/common/ImageModal';
 import PostCard from '@/components/posts/PostCard';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import PostMenuDialog from '@/components/posts/PostMenuDialog';
+import DeletePostDialog from '@/components/posts/DeletePostDialog';
+import EditPostDialog from '@/components/posts/EditPostDialog';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -49,6 +54,15 @@ export default function PostDetailPage() {
   const [replies, setReplies] = useState<PostWithStats[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // Pagination for replies
+  const [repliesLoadingMore, setRepliesLoadingMore] = useState(false);
+  const [repliesHasMore, setRepliesHasMore] = useState(true);
+  const [repliesOffset, setRepliesOffset] = useState(0);
+  const LIMIT = 10;
 
   useEffect(() => {
     if (postId) {
@@ -74,14 +88,55 @@ export default function PostDetailPage() {
   const fetchReplies = async () => {
     try {
       setRepliesLoading(true);
-      const repliesData = await postApi.getReplies(postId, 20, 0, user?.id);
+      setRepliesOffset(0);
+      setRepliesHasMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const repliesData = await postApi.getReplies(postId, LIMIT, 0, user?.id);
       setReplies(repliesData);
+      setRepliesOffset(LIMIT);
+      setRepliesHasMore((repliesData || []).length >= LIMIT);
     } catch (error) {
       console.error('Failed to fetch replies:', error);
     } finally {
       setRepliesLoading(false);
     }
   };
+
+  // Load more replies
+  const loadMoreReplies = useCallback(async () => {
+    if (repliesLoadingMore || !repliesHasMore) return;
+
+    try {
+      setRepliesLoadingMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const moreReplies = await postApi.getReplies(postId, LIMIT, repliesOffset, user?.id);
+
+      if (moreReplies && moreReplies.length > 0) {
+        setReplies(prev => [...prev, ...moreReplies]);
+        setRepliesOffset(prev => prev + LIMIT);
+        setRepliesHasMore(moreReplies.length >= LIMIT);
+      } else {
+        setRepliesHasMore(false);
+      }
+    } catch (error) {
+      console.error('Failed to load more replies:', error);
+    } finally {
+      setRepliesLoadingMore(false);
+    }
+  }, [repliesLoadingMore, repliesHasMore, repliesOffset, postId, user, LIMIT]);
+
+  // Infinite scroll for replies
+  const repliesSentinelRef = useInfiniteScroll({
+    onLoadMore: loadMoreReplies,
+    hasMore: repliesHasMore,
+    loading: repliesLoadingMore,
+  });
 
   const handleLike = async () => {
     if (!user || !post || isLiking) return;
@@ -157,6 +212,32 @@ export default function PostDetailPage() {
     return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
   };
 
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(true);
+  };
+
+  const handleEdit = () => {
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleted = () => {
+    // Navigate back after deletion
+    router.back();
+  };
+
+  const handleUpdated = () => {
+    // Refresh post after edit
+    fetchPost();
+  };
+
+  // Check if current user is the post owner
+  const isOwnPost = user && post && post.user_id === user.id;
+
   // Parse image_url - could be a single URL or comma-separated URLs
   const images = post?.image_url
     ? post.image_url.split(',').map((url) => url.trim())
@@ -229,7 +310,7 @@ export default function PostDetailPage() {
               {post.display_name?.[0] || post.username?.[0] || '?'}
             </Avatar>
           </Link>
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Link
               href={`/profile/${post.username}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -242,6 +323,22 @@ export default function PostDetailPage() {
               @{post.username}
             </Typography>
           </Box>
+
+          {/* More icon - only show for own posts */}
+          {isOwnPost && (
+            <IconButton
+              onClick={handleMoreClick}
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  bgcolor: 'rgba(29, 155, 240, 0.1)',
+                  color: '#1D9BF0',
+                },
+              }}
+            >
+              <MoreHoriz />
+            </IconButton>
+          )}
         </Box>
 
         {/* Content */}
@@ -498,9 +595,32 @@ export default function PostDetailPage() {
               返信はまだありません
             </Typography>
           ) : (
-            replies.map((reply) => (
-              <PostCard key={reply.id} post={reply} onUpdate={fetchReplies} />
-            ))
+            <>
+              {replies.map((reply) => (
+                <PostCard key={reply.id} post={reply} onUpdate={fetchReplies} />
+              ))}
+
+              {/* Loading More Indicator */}
+              {repliesLoadingMore && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              )}
+
+              {/* Sentinel Element for Infinite Scroll */}
+              {repliesHasMore && !repliesLoadingMore && (
+                <div ref={repliesSentinelRef} style={{ height: '20px' }} />
+              )}
+
+              {/* No More Replies Message */}
+              {!repliesHasMore && replies.length > 0 && (
+                <Box sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    すべての返信を表示しました
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -513,6 +633,35 @@ export default function PostDetailPage() {
           open={imageModalOpen}
           onClose={() => setImageModalOpen(false)}
         />
+      )}
+
+      {/* Post Menu Dialog */}
+      {post && (
+        <>
+          <PostMenuDialog
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <DeletePostDialog
+            open={deleteDialogOpen}
+            postId={post.id}
+            onClose={() => setDeleteDialogOpen(false)}
+            onDeleted={handleDeleted}
+          />
+
+          {/* Edit Post Dialog */}
+          <EditPostDialog
+            open={editDialogOpen}
+            postId={post.id}
+            initialContent={post.content}
+            onClose={() => setEditDialogOpen(false)}
+            onUpdated={handleUpdated}
+          />
+        </>
       )}
     </MainLayout>
   );

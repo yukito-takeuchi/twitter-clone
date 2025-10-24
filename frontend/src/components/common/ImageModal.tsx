@@ -2,7 +2,7 @@
 
 import { Box, IconButton, Modal } from '@mui/material';
 import { Close, ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ImageModalProps {
   images: string[];
@@ -13,6 +13,13 @@ interface ImageModalProps {
 
 export default function ImageModal({ images, initialIndex = 0, open, onClose }: ImageModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Reset currentIndex when modal opens or initialIndex changes
+  useEffect(() => {
+    if (open) {
+      setCurrentIndex(initialIndex);
+    }
+  }, [open, initialIndex]);
 
   const handlePrevious = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -42,7 +49,10 @@ export default function ImageModal({ images, initialIndex = 0, open, onClose }: 
       }}
     >
       <Box
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         sx={{
           position: 'relative',
           width: '100%',

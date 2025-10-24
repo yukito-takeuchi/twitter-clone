@@ -113,6 +113,11 @@ export const postApi = {
     return response.data.data!.posts;
   },
 
+  update: async (id: string, data: { content: string }): Promise<Post> => {
+    const response = await api.put<ApiResponse<{ post: Post }>>(`/posts/${id}`, data);
+    return response.data.data!.post;
+  },
+
   delete: async (id: string): Promise<void> => {
     await api.delete(`/posts/${id}`);
   },

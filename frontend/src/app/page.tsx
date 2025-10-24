@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Typography, CircularProgress, Tabs, Tab } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,14 +10,19 @@ import Header from '@/components/layout/Header';
 import MainLayout from '@/components/layout/MainLayout';
 import { postApi } from '@/lib/api';
 import type { PostWithStats } from '@/types';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0); // 0: おすすめ, 1: フォロー中
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const LIMIT = 10;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -25,6 +30,7 @@ export default function HomePage() {
     }
   }, [user, authLoading, router]);
 
+  // Initial fetch (reset everything)
   const fetchPosts = async (tab?: number) => {
     if (!user) return;
 
@@ -33,17 +39,24 @@ export default function HomePage() {
     try {
       setLoading(true);
       setError('');
+      setOffset(0);
+      setHasMore(true);
 
-      let posts;
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      let fetchedPosts;
       if (currentTab === 0) {
         // おすすめ: 全投稿
-        posts = await postApi.getAll(20, 0, user.id);
+        fetchedPosts = await postApi.getAll(LIMIT, 0, user.id);
       } else {
         // フォロー中: タイムライン
-        posts = await postApi.getTimeline(user.id, 20, 0, user.id);
+        fetchedPosts = await postApi.getTimeline(user.id, LIMIT, 0, user.id);
       }
 
-      setPosts(posts || []);
+      setPosts(fetchedPosts || []);
+      setOffset(LIMIT);
+      setHasMore((fetchedPosts || []).length >= LIMIT);
     } catch (err: any) {
       console.error('Failed to fetch posts:', err);
       setError('投稿の取得に失敗しました');
@@ -53,10 +66,50 @@ export default function HomePage() {
     }
   };
 
+  // Load more posts (pagination)
+  const loadMorePosts = useCallback(async () => {
+    if (!user || loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      let morePosts;
+      if (tabValue === 0) {
+        // おすすめ: 全投稿
+        morePosts = await postApi.getAll(LIMIT, offset, user.id);
+      } else {
+        // フォロー中: タイムライン
+        morePosts = await postApi.getTimeline(user.id, LIMIT, offset, user.id);
+      }
+
+      if (morePosts && morePosts.length > 0) {
+        setPosts(prev => [...prev, ...morePosts]);
+        setOffset(prev => prev + LIMIT);
+        setHasMore(morePosts.length >= LIMIT);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err: any) {
+      console.error('Failed to load more posts:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [user, loadingMore, hasMore, tabValue, offset, LIMIT]);
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     fetchPosts(newValue);
   };
+
+  // Infinite scroll
+  const sentinelRef = useInfiniteScroll({
+    onLoadMore: loadMorePosts,
+    hasMore,
+    loading: loadingMore,
+  });
 
   useEffect(() => {
     if (user) {
@@ -160,6 +213,27 @@ export default function HomePage() {
           {posts.map((post) => (
             <PostCard key={post.id} post={post} onUpdate={fetchPosts} />
           ))}
+
+          {/* Loading More Indicator */}
+          {loadingMore && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {/* Sentinel Element for Infinite Scroll */}
+          {hasMore && !loadingMore && (
+            <div ref={sentinelRef} style={{ height: '20px' }} />
+          )}
+
+          {/* No More Posts Message */}
+          {!hasMore && posts.length > 0 && (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                すべての投稿を表示しました
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
     </MainLayout>

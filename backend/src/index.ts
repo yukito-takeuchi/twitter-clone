@@ -17,7 +17,18 @@ const app = express();
 const PORT = config.port;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://twitter-clone-one-dusky.vercel.app',
+    'https://twitter-clone-one-dusky.vercel.app/',
+    /\.vercel\.app$/,
+    /\.vercel\.dev$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 app.use(express.json());
 
 // Serve static files from uploads directory

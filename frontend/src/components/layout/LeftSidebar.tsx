@@ -1,7 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Button, Menu, MenuItem } from '@mui/material';
+import { useState } from "react";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Avatar,
+  Typography,
+  Button,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import {
   Home,
   Search,
@@ -19,9 +31,9 @@ import {
   Campaign,
   Mic,
   Settings,
-} from '@mui/icons-material';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+} from "@mui/icons-material";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LeftSidebar() {
   const { user, logout } = useAuth();
@@ -30,28 +42,78 @@ export default function LeftSidebar() {
   const menuOpen = Boolean(menuAnchorEl);
 
   const navItems = [
-    { icon: <Home fontSize="medium" />, label: 'ホーム', path: '/', active: true },
-    { icon: <Search fontSize="medium" />, label: '検索', path: '#', active: false },
-    { icon: <Notifications fontSize="medium" />, label: '通知', path: '#', active: false },
-    { icon: <Mail fontSize="medium" />, label: 'メッセージ', path: '#', active: false },
-    { icon: <span style={{ fontSize: '24px' }}>𝕏</span>, label: 'Grok', path: '#', active: false },
-    { icon: <ListAlt fontSize="medium" />, label: 'リスト', path: '#', active: false },
-    { icon: <Bookmark fontSize="medium" />, label: 'ブックマーク', path: '#', active: false },
-    { icon: <Group fontSize="medium" />, label: 'コミュニティ', path: '#', active: false },
-    { icon: <Verified fontSize="medium" />, label: '認証済みマーク', path: '#', active: false },
+    {
+      icon: <Home fontSize="medium" />,
+      label: "ホーム",
+      path: "/",
+      active: true,
+    },
+    {
+      icon: <Search fontSize="medium" />,
+      label: "検索",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <Notifications fontSize="medium" />,
+      label: "通知",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <Mail fontSize="medium" />,
+      label: "メッセージ",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <span style={{ fontSize: "24px" }}>𝕏</span>,
+      label: "Grok",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <ListAlt fontSize="medium" />,
+      label: "リスト",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <Bookmark fontSize="medium" />,
+      label: "ブックマーク",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <Group fontSize="medium" />,
+      label: "コミュニティ",
+      path: "#",
+      active: false,
+    },
+    {
+      icon: <Verified fontSize="medium" />,
+      label: "認証済みマーク",
+      path: "#",
+      active: false,
+    },
     {
       icon: <Person fontSize="medium" />,
-      label: 'プロフィール',
-      path: user ? `/profile/${user.username}` : '#',
-      active: !!user
+      label: "プロフィール",
+      path: user ? `/profile/${user.username}` : "#",
+      active: !!user,
     },
-    { icon: <MoreHoriz fontSize="medium" />, label: 'もっと見る', path: '#', active: false },
+    {
+      icon: <MoreHoriz fontSize="medium" />,
+      label: "もっと見る",
+      path: "#",
+      active: false,
+    },
   ];
 
   const handleLogout = async () => {
     setMenuAnchorEl(null);
     await logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   const handleMoreClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -66,48 +128,45 @@ export default function LeftSidebar() {
   };
 
   const getImageUrl = (url: string | null) => {
-    if (!url) return '';
-    if (url.startsWith('http')) {
+    if (!url) return "";
+    if (url.startsWith("http")) {
       return url;
     }
-    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${url}`;
   };
 
   return (
     <Box
       sx={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
         px: 1,
         py: 1,
       }}
     >
       {/* Logo + Navigation */}
-      <Box sx={{ flex: 1, maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
+      <Box
+        sx={{ flex: 1, maxHeight: "calc(100vh - 180px)", overflow: "hidden" }}
+      >
         {/* Logo */}
         <Box sx={{ p: 1.5, mb: 0.25 }}>
           <Box
             sx={{
               width: 50,
               height: 50,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '50%',
-              '&:hover': {
-                bgcolor: 'action.hover',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              "&:hover": {
+                bgcolor: "action.hover",
               },
-              cursor: 'pointer',
+              cursor: "pointer",
             }}
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="30"
-              height="30"
-              fill="currentColor"
-            >
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
           </Box>
@@ -115,33 +174,45 @@ export default function LeftSidebar() {
 
         {/* Navigation */}
         <List sx={{ px: 0 }}>
-        {navItems.map((item) => (
-          <ListItem key={item.label} disablePadding sx={{ mb: { xs: 0, sm: 0.125, md: 0.25 } }}>
-            <ListItemButton
-              onClick={() => item.active && router.push(item.path)}
-              disabled={!item.active}
-              sx={{
-                borderRadius: '9999px',
-                py: { xs: 0.25, sm: 0.375, md: 0.5 },
-                px: 2,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-              }}
+          {navItems.map((item) => (
+            <ListItem
+              key={item.label}
+              disablePadding
+              sx={{ mb: { xs: 0, sm: 0.125, md: 0.25 } }}
             >
-              <ListItemIcon sx={{ minWidth: { xs: 40, sm: 48, md: 56 }, color: 'text.primary' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: { xs: '16px', sm: '18px', md: '20px' },
-                  fontWeight: item.path === '/' || item.path.includes('/profile') ? 'bold' : 'normal',
+              <ListItemButton
+                onClick={() => item.active && router.push(item.path)}
+                disabled={!item.active}
+                sx={{
+                  borderRadius: "9999px",
+                  py: { xs: 0.25, sm: 0.375, md: 0.5 },
+                  px: 2,
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                  },
                 }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: { xs: 40, sm: 48, md: 56 },
+                    color: "text.primary",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: { xs: "16px", sm: "18px", md: "20px" },
+                    fontWeight:
+                      item.path === "/" || item.path.includes("/profile")
+                        ? "bold"
+                        : "normal",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
         </List>
       </Box>
 
@@ -150,16 +221,16 @@ export default function LeftSidebar() {
         <Button
           fullWidth
           variant="contained"
-          onClick={() => router.push('/')}
+          onClick={() => router.push("/")}
           sx={{
-            borderRadius: '9999px',
+            borderRadius: "9999px",
             py: 1.5,
-            fontSize: '17px',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            bgcolor: 'rgb(29, 155, 240)',
-            '&:hover': {
-              bgcolor: 'rgb(26, 140, 216)',
+            fontSize: "17px",
+            fontWeight: "bold",
+            textTransform: "none",
+            bgcolor: "rgb(29, 155, 240)",
+            "&:hover": {
+              bgcolor: "rgb(26, 140, 216)",
             },
           }}
         >
@@ -173,15 +244,15 @@ export default function LeftSidebar() {
           <Box
             onClick={handleUserClick}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 1.5,
               p: 1.5,
-              borderRadius: '9999px',
-              cursor: 'pointer',
+              borderRadius: "9999px",
+              cursor: "pointer",
               mb: 2,
-              '&:hover': {
-                bgcolor: 'action.hover',
+              "&:hover": {
+                bgcolor: "action.hover",
               },
             }}
           >
@@ -195,10 +266,10 @@ export default function LeftSidebar() {
               <Typography
                 variant="body2"
                 sx={{
-                  fontWeight: 'bold',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  fontWeight: "bold",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {user.display_name || user.username}
@@ -206,10 +277,10 @@ export default function LeftSidebar() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: 'text.secondary',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  color: "text.secondary",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 @{user.username}
@@ -218,17 +289,17 @@ export default function LeftSidebar() {
             <Box
               onClick={handleMoreClick}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  '& svg': {
-                    color: 'primary.main',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&:hover": {
+                  "& svg": {
+                    color: "primary.main",
                   },
                 },
               }}
             >
-              <MoreHoriz sx={{ color: 'text.primary' }} />
+              <MoreHoriz sx={{ color: "text.primary" }} />
             </Box>
           </Box>
 
@@ -238,18 +309,18 @@ export default function LeftSidebar() {
             open={menuOpen}
             onClose={() => setMenuAnchorEl(null)}
             anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
+              vertical: "top",
+              horizontal: "center",
             }}
             transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'center',
+              vertical: "bottom",
+              horizontal: "center",
             }}
             PaperProps={{
               sx: {
                 width: 300,
                 borderRadius: 2,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
                 mt: -1,
               },
             }}
@@ -259,8 +330,8 @@ export default function LeftSidebar() {
               sx={{
                 py: 1.5,
                 px: 2,
-                fontSize: '15px',
-                fontWeight: 'bold',
+                fontSize: "15px",
+                fontWeight: "bold",
               }}
             >
               既存のアカウントを追加
@@ -270,10 +341,10 @@ export default function LeftSidebar() {
               sx={{
                 py: 1.5,
                 px: 2,
-                fontSize: '15px',
-                fontWeight: 'bold',
-                '&:hover': {
-                  bgcolor: 'action.hover',
+                fontSize: "15px",
+                fontWeight: "bold",
+                "&:hover": {
+                  bgcolor: "action.hover",
                 },
               }}
             >

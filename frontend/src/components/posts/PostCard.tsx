@@ -75,6 +75,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     if (
       target.closest('button') ||
       target.closest('a') ||
+      target.closest('[data-image-box]') ||
       target.tagName === 'BUTTON' ||
       target.tagName === 'A' ||
       target.tagName === 'IMG'
@@ -86,6 +87,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   const handleImageClick = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
+    e.preventDefault();
+    e.nativeEvent.stopImmediatePropagation();
     setSelectedImageIndex(index);
     setImageModalOpen(true);
   };
@@ -217,6 +220,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               {images.map((image, index) => (
                 <Box
                   key={index}
+                  data-image-box
                   onClick={(e) => handleImageClick(e, index)}
                   sx={{
                     position: 'relative',

@@ -42,7 +42,10 @@ export default function ImageModal({ images, initialIndex = 0, open, onClose }: 
       }}
     >
       <Box
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         sx={{
           position: 'relative',
           width: '100%',

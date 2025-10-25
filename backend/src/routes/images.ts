@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { imageController, upload } from "../controllers/imageController";
+import { imageController } from "../controllers/imageController";
+import { upload } from "../config/storage";
 
 const router = Router();
 

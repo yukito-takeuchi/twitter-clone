@@ -17,7 +17,7 @@ export const imageController = {
     }
 
     let imageUrl: string;
-    let storageType: string;
+    let storageType: "local" | "gcs";
 
     // Upload to GCS in production, local storage in development
     if (isProduction) {
@@ -58,7 +58,7 @@ export const imageController = {
       throw new AppError("User ID is required", 400);
     }
 
-    const storageType = isProduction ? "gcs" : "local";
+    const storageType: "local" | "gcs" = isProduction ? "gcs" : "local";
 
     // Save all images
     const imagePromises = files.map(async (file) => {

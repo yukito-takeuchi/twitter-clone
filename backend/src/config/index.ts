@@ -14,6 +14,7 @@ interface Config {
   gcsProjectId?: string;
   gcsBucketName?: string;
   gcsKeyFilename?: string;
+  gcsCredentials?: string; // Base64 encoded JSON credentials
   // Mailgun
   mailgunApiKey?: string;
   mailgunDomain?: string;
@@ -35,6 +36,7 @@ export const config: Config = {
   gcsProjectId: process.env.GCS_PROJECT_ID,
   gcsBucketName: process.env.GCS_BUCKET_NAME,
   gcsKeyFilename: process.env.GCS_KEY_FILENAME,
+  gcsCredentials: process.env.GCS_CREDENTIALS,
   // Mailgun
   mailgunApiKey: process.env.MAILGUN_API_KEY,
   mailgunDomain: process.env.MAILGUN_DOMAIN,

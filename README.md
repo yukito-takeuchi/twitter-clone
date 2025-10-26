@@ -12,21 +12,15 @@
 
 [🚀 ライブデモ](https://twitter-clone-frontend.vercel.app) | [📚 API ドキュメント](./API_ENDPOINTS.md) | [🐳 Docker セットアップ](#quick-start)
 
+---
+
+## 📺 デモ
+
 <div align="center">
 
-### 🎬 デモ動画
+![YouTube Clone Demo](https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/twitter-clone-gif.gif)
 
-https://github.com/yourusername/twitter-clone/assets/demo-video.mp4
-
-_実際のアプリケーション動作デモ_
-
-> **📝 デモ動画の追加方法:**
->
-> 1. GitHub リポジトリの `assets` フォルダに動画をアップロード
-> 2. 上記の URL を実際のファイルパスに更新
-> 3. 動画は MP4 形式で 10MB 以下に圧縮することを推奨
-
-</div>
+_実際のアプリケーションの動作デモ_
 
 </div>
 
@@ -187,7 +181,10 @@ npm run migrate
 
 ### 🎬 デモ動画
 
-https://github.com/yourusername/twitter-clone/assets/demo-video.mp4
+<video width="100%" controls>
+  <source src="https://github.com/yukito-takeuchi/twitter-clone/raw/feature/frontend-setup1/twitter-clone-gif.gif" type="video/mp4">
+  お使いのブラウザは動画タグをサポートしていません。
+</video>
 
 _フル機能デモンストレーション_
 

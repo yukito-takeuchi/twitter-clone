@@ -16,15 +16,22 @@
 
 ### 🎬 デモ動画
 
-https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/twitter-clone-gif.gif
+<video width="100%" controls></video>
+
+  <source src="https://github.com/yukito-takeuchi/twitter-clone/raw/feature/frontend-setup1/twitter-clone-gif.gif" type="video/mp4">
+  お使いのブラウザは動画タグをサポートしていません。
+</video>
+
+**📺 動画が表示されない場合**: [デモ動画を直接表示](https://github.com/yukito-takeuchi/twitter-clone/raw/feature/frontend-setup1/twitter-clone-gif.gif)
 
 _実際のアプリケーション動作デモ_
 
 > **📝 デモ動画の追加方法:**
 >
-> 1. GitHub リポジトリの `assets` フォルダに動画をアップロード
-> 2. 上記の URL を実際のファイルパスに更新
-> 3. 動画は MP4 形式で 10MB 以下に圧縮することを推奨
+> 1. **GitHub Issues を使用**: 新しい Issue を作成し、動画をドラッグ&ドロップでアップロード
+> 2. **GitHub Releases を使用**: リリースを作成し、動画をアセットとして添付
+> 3. **直接アップロード**: リポジトリに動画ファイルを直接コミット
+> 4. **最適化**: 動画は MP4 形式で 10MB 以下に圧縮することを推奨
 
 </div>
 
@@ -187,7 +194,10 @@ npm run migrate
 
 ### 🎬 デモ動画
 
-https://github.com/yourusername/twitter-clone/assets/demo-video.mp4
+<video width="100%" controls>
+  <source src="https://github.com/yukito-takeuchi/twitter-clone/raw/feature/frontend-setup1/twitter-clone-gif.gif" type="video/mp4">
+  お使いのブラウザは動画タグをサポートしていません。
+</video>
 
 _フル機能デモンストレーション_
 

@@ -1,195 +1,472 @@
-# Twitter Clone Application
+# 🐦 Twitter Clone - フルスタックソーシャルメディアアプリケーション
 
-Express のキャッチアップとインターンで使用したツールの実践活用を目的とした、Twitter クローンアプリケーション。
+<div align="center">
 
-## 技術スタック
+![Twitter Clone](https://img.shields.io/badge/Twitter-Clone-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+
+**最新技術で構築されたモダンでスケーラブルな Twitter クローン**
+
+[🚀 ライブデモ](https://twitter-clone-frontend.vercel.app) | [📚 API ドキュメント](./API_ENDPOINTS.md) | [🐳 Docker セットアップ](#quick-start)
+
+</div>
+
+---
+
+## 📋 目次
+
+- [✨ 機能](#-機能)
+- [🏗️ アーキテクチャ](#️-アーキテクチャ)
+- [🛠️ 技術スタック](#️-技術スタック)
+- [🚀 クイックスタート](#-クイックスタート)
+- [📱 スクリーンショット](#-スクリーンショット)
+- [🔧 開発](#-開発)
+- [📊 データベーススキーマ](#-データベーススキーマ)
+- [🌐 API エンドポイント](#-api-エンドポイント)
+- [🚀 デプロイ](#-デプロイ)
+- [📈 パフォーマンス](#-パフォーマンス)
+- [🤝 コントリビューション](#-コントリビューション)
+- [📄 ライセンス](#-ライセンス)
+
+---
+
+## ✨ 機能
+
+### 🎯 コア機能
+
+- **👤 ユーザー認証** - Firebase Authentication 統合
+- **📝 投稿作成** - 画像付きリッチテキスト投稿
+- **❤️ ソーシャル機能** - いいね、フォロー、ブックマーク
+- **👥 ユーザープロフィール** - アバター付きカスタマイズ可能なプロフィール
+- **📱 レスポンシブデザイン** - モバイルファースト、Twitter ライクな UI
+- **🔍 リアルタイム検索** - ユーザーと投稿の検索
+- **📊 タイムライン** - フォローに基づくパーソナライズされたフィード
+
+### 🚀 高度な機能
+
+- **🖼️ 画像アップロード** - Google Cloud Storage 統合
+- **📧 メール通知** - Mailgun 統合
+- **📊 アナリティクス** - Datadog 監視
+- **🔒 セキュリティ** - JWT 認証、CORS 保護
+- **⚡ パフォーマンス** - 最適化されたクエリ、キャッシュ戦略
+
+---
+
+## 🏗️ アーキテクチャ
+
+```mermaid
+graph TB
+    subgraph "フロントエンド (Vercel)"
+        A[Next.js App]
+        B[TypeScript]
+        C[Material-UI]
+        D[Tailwind CSS]
+    end
+
+    subgraph "バックエンド (Heroku)"
+        E[Express.js API]
+        F[PostgreSQL]
+        G[Firebase Auth]
+        H[Google Cloud Storage]
+    end
+
+    subgraph "外部サービス"
+        I[Mailgun]
+        J[Datadog]
+    end
+
+    A --> E
+    E --> F
+    E --> G
+    E --> H
+    E --> I
+    E --> J
+```
+
+---
+
+## 🛠️ 技術スタック
 
 ### フロントエンド
-- TypeScript
-- Next.js
-- MUI (Material-UI)
-- Tailwind CSS
+
+| 技術             | バージョン | 用途                              |
+| ---------------- | ---------- | --------------------------------- |
+| **Next.js**      | 14.2.1     | SSR/SSG 対応 React フレームワーク |
+| **TypeScript**   | 5.x        | 型安全な JavaScript               |
+| **Material-UI**  | 7.3.4      | コンポーネントライブラリ          |
+| **Tailwind CSS** | 3.4.1      | ユーティリティファースト CSS      |
+| **Firebase**     | 12.4.0     | 認証                              |
+| **Axios**        | 1.12.2     | HTTP クライアント                 |
 
 ### バックエンド
-- Node.js
-- Express
-- TypeScript
-- PostgreSQL
 
-### インフラ・ツール
-- Docker
-- Vercel (フロントエンド)
-- Heroku (バックエンド)
-- Google Cloud Storage (画像保存)
-- Firebase Authentication (認証)
-- Datadog (監視)
-- Mailgun (メール送信)
+| 技術           | バージョン | 用途               |
+| -------------- | ---------- | ------------------ |
+| **Node.js**    | 20.x       | ランタイム環境     |
+| **Express.js** | 5.1.0      | Web フレームワーク |
+| **PostgreSQL** | 16.x       | メインデータベース |
+| **TypeScript** | 5.x        | 型安全な開発       |
+| **Docker**     | Latest     | コンテナ化         |
 
-## セットアップ
+### インフラストラクチャ
 
-### 必要条件
-- Docker & Docker Compose
-- Node.js 20 以上
-- pnpm (推奨) または npm
+| サービス                 | 用途                                   |
+| ------------------------ | -------------------------------------- |
+| **Vercel**               | フロントエンドホスティング・デプロイ   |
+| **Heroku**               | バックエンドホスティング・データベース |
+| **Google Cloud Storage** | 画像・ファイルストレージ               |
+| **Mailgun**              | メール配信サービス                     |
+| **Datadog**              | アプリケーション監視                   |
 
-### バックエンド起動手順
+---
 
-1. **Docker環境の起動**
-   ```bash
-   # プロジェクトルートディレクトリで実行
-   docker-compose up -d
-   ```
+## 🚀 クイックスタート
 
-   これにより以下のサービスが起動します：
-   - PostgreSQL（ポート: 5432）
-   - バックエンド API（ポート: 3001）
+### 前提条件
 
-2. **サーバーの動作確認**
-   ```bash
-   # サーバーのヘルスチェック
-   curl http://localhost:3001/health
+- **Node.js** 20+
+- **Docker** & Docker Compose
+- **Git**
 
-   # データベース接続確認
-   curl http://localhost:3001/health/db
-   ```
+### 1. リポジトリのクローン
 
-3. **ログの確認**
-   ```bash
-   # バックエンドのログ表示
-   cd backend && npm run docker:logs
+```bash
+git clone https://github.com/yourusername/twitter-clone.git
+cd twitter-clone
+```
 
-   # データベースのログ表示
-   cd backend && npm run docker:db:logs
-   ```
+### 2. 開発環境の起動
 
-### Dockerコマンド一覧
+```bash
+# Dockerですべてのサービスを起動
+docker-compose up -d
+
+# サービスの動作確認
+curl http://localhost:3001/health
+curl http://localhost:3001/health/db
+```
+
+### 3. アプリケーションへのアクセス
+
+- **フロントエンド**: http://localhost:3000
+- **バックエンド API**: http://localhost:3001
+- **データベース**: localhost:5432
+
+### 4. マイグレーションの実行
+
+```bash
+# データベーススキーマの適用
+cd backend
+npm run migrate
+```
+
+---
+
+## 📱 スクリーンショット
+
+<div align="center">
+
+### 🏠 ホームフィード
+
+![Home Feed](./docs/screenshots/home-feed.png)
+
+### 👤 ユーザープロフィール
+
+![User Profile](./docs/screenshots/user-profile.png)
+
+### 📝 投稿作成
+
+![Post Creation](./docs/screenshots/post-creation.png)
+
+### 📱 モバイル表示
+
+![Mobile View](./docs/screenshots/mobile-view.png)
+
+</div>
+
+---
+
+## 🔧 開発
+
+### プロジェクト構造
+
+```
+twitter-clone/
+├── 📁 frontend/                 # Next.jsアプリケーション
+│   ├── 📁 src/
+│   │   ├── 📁 app/             # App routerページ
+│   │   ├── 📁 components/      # 再利用可能なコンポーネント
+│   │   ├── 📁 hooks/           # カスタムReactフック
+│   │   └── 📁 utils/           # ユーティリティ関数
+│   └── 📄 package.json
+├── 📁 backend/                  # Express.js API
+│   ├── 📁 src/
+│   │   ├── 📁 controllers/     # ルートコントローラー
+│   │   ├── 📁 models/          # データモデル
+│   │   ├── 📁 routes/          # APIルート
+│   │   ├── 📁 services/        # ビジネスロジック
+│   │   └── 📁 middlewares/      # Expressミドルウェア
+│   ├── 📁 migrations/          # データベースマイグレーション
+│   └── 📄 Dockerfile
+├── 📄 docker-compose.yml       # 開発環境
+├── 📄 heroku.yml              # 本番デプロイ
+└── 📄 README.md
+```
+
+### 利用可能なスクリプト
+
+#### フロントエンド
+
+```bash
+cd frontend
+
+npm run dev          # 開発サーバー起動
+npm run build        # 本番用ビルド
+npm run start        # 本番サーバー起動
+npm run lint         # ESLint実行
+```
+
+#### バックエンド
 
 ```bash
 cd backend
 
-# コンテナの起動
-npm run docker:up
-
-# コンテナの停止
-npm run docker:down
-
-# バックエンドコンテナの再起動
-npm run docker:restart
-
-# コンテナの再ビルド
-npm run docker:rebuild
-
-# バックエンドログの表示
-npm run docker:logs
-
-# データベースログの表示
-npm run docker:db:logs
+npm run dev          # 開発サーバー起動
+npm run build        # TypeScriptビルド
+npm run start        # 本番サーバー起動
+npm run migrate      # データベースマイグレーション実行
 ```
 
-### ローカル開発（Docker不使用）
+#### Docker コマンド
 
-Docker を使わずにローカルで開発する場合：
-
-1. PostgreSQL を手動でインストール・起動
-2. `backend/.env` の `DATABASE_URL` をローカルホストに変更
-   ```env
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/twitter_clone
-   ```
-3. バックエンドの起動
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
-
-## プロジェクト構造
-
-```
-.
-├── backend/
-│   ├── src/
-│   │   ├── config/          # 設定ファイル
-│   │   │   ├── index.ts     # 環境変数管理
-│   │   │   └── database.ts  # DB接続設定
-│   │   ├── controllers/     # コントローラー
-│   │   ├── models/          # データモデル
-│   │   ├── routes/          # ルーティング
-│   │   ├── services/        # ビジネスロジック
-│   │   ├── middlewares/     # ミドルウェア
-│   │   ├── utils/           # ユーティリティ
-│   │   └── index.ts         # エントリーポイント
-│   ├── init.sql             # DB初期化スクリプト
-│   ├── Dockerfile           # Dockerイメージ定義
-│   ├── .env                 # 環境変数
-│   └── package.json
-├── frontend/
-│   └── (Next.js プロジェクト)
-├── docker-compose.yml       # Docker Compose設定
-└── README.md
-```
-
-## API エンドポイント
-
-### ヘルスチェック
-- `GET /health` - サーバーの稼働確認
-- `GET /health/db` - データベース接続確認
-
-## 開発フェーズ
-
-### Phase 1（MVP） - 現在実装中
-- [x] Docker環境セットアップ
-- [ ] 認証機能（Firebase Authentication）
-- [ ] 投稿機能（CRUD）
-- [ ] プロフィール機能（CRUD）
-- [ ] いいね機能
-- [ ] フォロー機能
-- [ ] 画像アップロード（Google Cloud Storage）
-- [ ] タイムライン表示
-
-### Phase 2（拡張機能）
-- [ ] DM（ダイレクトメッセージ）機能
-- [ ] 通知機能
-- [ ] 検索機能
-- [ ] リツイート機能
-- [ ] 保存機能
-- [ ] View カウント
-
-## トラブルシューティング
-
-### ポート競合エラー
 ```bash
-# ポート 5432 が使用中の場合
-lsof -ti:5432 | xargs kill -9
+# すべてのサービスを起動
+docker-compose up -d
 
-# ポート 3001 が使用中の場合
-lsof -ti:3001 | xargs kill -9
-```
+# ログを表示
+docker-compose logs -f
 
-### データベース接続エラー
-```bash
-# データベースコンテナの状態確認
-docker ps
+# サービスを停止
+docker-compose down
 
-# データベースのログ確認
-docker-compose logs postgres
-```
-
-### コンテナの完全リセット
-```bash
-# すべてのコンテナとボリュームを削除
-docker-compose down -v
-
-# 再度起動
+# コンテナを再ビルド
 docker-compose up -d --build
 ```
 
-## 次のステップ
+---
 
-1. データベーススキーマの設計と実装
-2. Firebase Authentication の設定
-3. ユーザー認証エンドポイントの実装
-4. 投稿機能の実装
+## 📊 データベーススキーマ
 
-## ライセンス
+### コアテーブル
 
-このプロジェクトは学習目的で作成されています。
+```sql
+-- ユーザーテーブル
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    firebase_uid VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 投稿テーブル
+CREATE TABLE posts (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    content TEXT NOT NULL,
+    image_url TEXT,
+    reply_to_id UUID REFERENCES posts(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ソーシャル機能
+CREATE TABLE likes (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    post_id UUID REFERENCES posts(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE follows (
+    id UUID PRIMARY KEY,
+    follower_id UUID REFERENCES users(id),
+    following_id UUID REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### データベース機能
+
+- **UUID 主キー** - グローバル一意識別子
+- **外部キー制約** - データ整合性
+- **インデックス** - 最適化されたクエリパフォーマンス
+- **タイムスタンプ** - 自動作成/更新追跡
+- **カスケード削除** - 参照整合性の維持
+
+---
+
+## 🌐 API エンドポイント
+
+### 認証
+
+```http
+POST   /api/auth/register     # ユーザー登録
+POST   /api/auth/login        # ユーザーログイン
+POST   /api/auth/logout       # ユーザーログアウト
+GET    /api/auth/me           # 現在のユーザー取得
+```
+
+### ユーザー
+
+```http
+GET    /api/users             # ユーザー一覧
+GET    /api/users/:id         # IDでユーザー取得
+GET    /api/users/username/:username  # ユーザー名でユーザー取得
+PUT    /api/users/:id         # ユーザー更新
+DELETE /api/users/:id         # ユーザー削除
+```
+
+### 投稿
+
+```http
+GET    /api/posts             # 投稿一覧
+POST   /api/posts             # 投稿作成
+GET    /api/posts/:id         # IDで投稿取得
+PUT    /api/posts/:id         # 投稿更新
+DELETE /api/posts/:id         # 投稿削除
+GET    /api/posts/timeline/:userId  # ユーザータイムライン取得
+```
+
+### ソーシャル機能
+
+```http
+POST   /api/likes             # 投稿にいいね
+DELETE /api/likes/:id         # いいねを取り消し
+POST   /api/follows           # ユーザーをフォロー
+DELETE /api/follows/:id       # フォローを解除
+GET    /api/follows/:userId   # ユーザーのフォロワー/フォロー中取得
+```
+
+### ヘルスチェック・監視
+
+```http
+GET    /health                # APIヘルスチェック
+GET    /health/db             # データベースヘルスチェック
+```
+
+---
+
+## 🚀 デプロイ
+
+### フロントエンド (Vercel)
+
+```bash
+# mainブランチへのプッシュで自動デプロイ
+git push origin main
+
+# 手動デプロイ
+vercel --prod
+```
+
+### バックエンド (Heroku)
+
+```bash
+# Herokuにデプロイ
+git push heroku main
+
+# データベースマイグレーション実行
+heroku run npm run migrate
+
+# ログを表示
+heroku logs --tail
+```
+
+### 環境変数
+
+```env
+# バックエンド (.env)
+DATABASE_URL=postgresql://...
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PRIVATE_KEY=your-private-key
+FIREBASE_CLIENT_EMAIL=your-client-email
+GCS_BUCKET_NAME=your-bucket-name
+MAILGUN_API_KEY=your-mailgun-key
+MAILGUN_DOMAIN=your-mailgun-domain
+
+# フロントエンド (.env.local)
+NEXT_PUBLIC_API_URL=https://your-api.herokuapp.com
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-domain
+```
+
+---
+
+## 📈 パフォーマンス
+
+### 最適化戦略
+
+- **データベースインデックス** - 最適化されたクエリパフォーマンス
+- **コネクションプーリング** - 効率的なデータベース接続
+- **画像最適化** - Next.js 自動最適化
+- **コード分割** - パフォーマンス向上のための遅延読み込み
+- **キャッシュ** - セッション管理用 Redis
+- **CDN** - 静的アセット用 Vercel グローバル CDN
+
+### 監視
+
+- **Datadog** - アプリケーションパフォーマンス監視
+- **Heroku Metrics** - サーバーパフォーマンス追跡
+- **Vercel Analytics** - フロントエンドパフォーマンス洞察
+
+---
+
+## 🤝 コントリビューション
+
+コントリビューションを歓迎します！以下の手順に従ってください：
+
+1. **リポジトリをフォーク**
+2. **フィーチャーブランチを作成**: `git checkout -b feature/amazing-feature`
+3. **変更をコミット**: `git commit -m 'Add amazing feature'`
+4. **ブランチにプッシュ**: `git push origin feature/amazing-feature`
+5. **プルリクエストを開く**
+
+### 開発ガイドライン
+
+- TypeScript のベストプラクティスに従う
+- 包括的なテストを書く
+- ドキュメントを更新する
+- コンベンショナルコミットに従う
+
+---
+
+## 📄 ライセンス
+
+このプロジェクトは MIT ライセンスの下でライセンスされています - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
+
+---
+
+## 🙏 謝辞
+
+- **Twitter** - インスピレーションと UI/UX デザイン
+- **Vercel** - 素晴らしいホスティングプラットフォーム
+- **Heroku** - 信頼性の高いバックエンドホスティング
+- **Material-UI** - 美しいコンポーネントライブラリ
+- **PostgreSQL** - 堅牢なデータベースシステム
+
+---
+
+<div align="center">
+
+**❤️ で構築 by [あなたの名前]**
+
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yourusername)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/yourusername)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/yourusername)
+
+</div>

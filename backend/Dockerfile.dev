@@ -1,0 +1,19 @@
+# Development Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies including devDependencies
+RUN npm install
+
+# Copy source code (will be overridden by volume mount in docker-compose)
+COPY . .
+
+# Expose development port
+EXPOSE 3001
+
+# Start development server with nodemon
+CMD ["npm", "run", "dev"]

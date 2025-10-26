@@ -16,7 +16,7 @@
 
 ### 🎬 デモ動画
 
-https://github.com/yourusername/twitter-clone/assets/demo-video.mp4
+https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/twitter-clone.mp4
 
 _実際のアプリケーション動作デモ_
 

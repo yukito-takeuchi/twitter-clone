@@ -127,3 +127,21 @@ export interface UpdateProfileData {
   avatar_url?: string;
   cover_image_url?: string;
 }
+
+// Re-export message types
+export type {
+  MessageType,
+  Conversation,
+  ConversationWithDetails,
+  Message,
+  MessageWithDetails,
+  CreateMessageInput,
+  SendMessageData,
+  SocketMessageReceive,
+  SocketTypingEvent,
+  SocketReadConfirmation,
+  SocketUserStatus,
+  SocketNotification,
+  OtherParticipant,
+  GetOtherParticipant,
+} from "./messages";

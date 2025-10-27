@@ -63,7 +63,7 @@ export default function LeftSidebar() {
     {
       icon: <Mail fontSize="medium" />,
       label: "メッセージ",
-      path: "#",
+      path: "/messages",
       active: false,
     },
     {

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { ConversationWithDetails } from "@/types/messages";
 import { getConversations } from "@/lib/api-messages";
 import ConversationItem from "./ConversationItem";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
 
 interface ConversationListProps {
   currentUserId: string;
@@ -75,48 +76,95 @@ export default function ConversationList({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full p-4">
-        <p className="text-red-500">{error}</p>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          p: 2,
+        }}
+      >
+        <Typography color="error">{error}</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="flex flex-col h-full border-r border-gray-200 dark:border-gray-700">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold">Messages</h2>
-        <button
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          p: 2,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Typography variant="h6" fontWeight="bold">
+          Messages
+        </Typography>
+        <IconButton
           onClick={onNewMessage}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          color="primary"
           title="New message"
         >
-          <PlusCircleIcon className="w-6 h-6 text-blue-500" />
-        </button>
-      </div>
+          <AddIcon />
+        </IconButton>
+      </Box>
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto">
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+        }}
+      >
         {conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              p: 4,
+              textAlign: "center",
+            }}
+          >
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
               No conversations yet
-            </p>
+            </Typography>
             <button
               onClick={onNewMessage}
               className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
             >
               Start a conversation
             </button>
-          </div>
+          </Box>
         ) : (
           conversations.map((conversation) => (
             <ConversationItem
@@ -128,7 +176,7 @@ export default function ConversationList({
             />
           ))
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

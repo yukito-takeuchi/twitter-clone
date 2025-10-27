@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Box, Typography, Avatar, CircularProgress } from "@mui/material";
 import { ConversationWithDetails, MessageWithDetails, SocketMessageReceive } from "@/types/messages";
 import { getMessages, markAllMessagesAsRead } from "@/lib/api-messages";
 import { getOtherParticipant } from "@/lib/message-utils";
@@ -8,7 +9,6 @@ import { useSocket, useConversation } from "@/hooks/useSocket";
 import { onMessageReceive, onTypingStart, onTypingStop } from "@/lib/socket";
 import MessageItem from "./MessageItem";
 import MessageInput from "./MessageInput";
-import Image from "next/image";
 
 interface MessageThreadProps {
   conversation: ConversationWithDetails;
@@ -104,48 +104,77 @@ export default function MessageThread({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
-        {otherParticipant.avatar ? (
-          <Image
-            src={otherParticipant.avatar}
-            alt={otherParticipant.display_name}
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-            <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">
-              {otherParticipant.display_name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <div>
-          <h2 className="font-bold text-lg">{otherParticipant.display_name}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          p: 2,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Avatar
+          src={otherParticipant.avatar || undefined}
+          alt={otherParticipant.display_name}
+          sx={{ width: 40, height: 40 }}
+        >
+          {otherParticipant.display_name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box>
+          <Typography variant="subtitle1" fontWeight="bold">
+            {otherParticipant.display_name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             @{otherParticipant.username}
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Messages */}
-      <div
+      <Box
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          p: 2,
+        }}
       >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+            }}
+          >
+            <Typography color="text.secondary">
+              No messages yet. Start the conversation!
+            </Typography>
+          </Box>
         ) : (
           <>
             {messages.map((message, index) => {
@@ -171,7 +200,7 @@ export default function MessageThread({
 
         {/* Typing Indicator */}
         {isOtherUserTyping && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
             <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl px-4 py-2">
               <div className="flex gap-1">
@@ -190,7 +219,7 @@ export default function MessageThread({
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+      </Box>
 
       {/* Input */}
       <MessageInput
@@ -200,6 +229,6 @@ export default function MessageThread({
           // Messages will be added via Socket.IO listener
         }}
       />
-    </div>
+    </Box>
   );
 }

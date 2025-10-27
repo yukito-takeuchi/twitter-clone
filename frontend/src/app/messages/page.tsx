@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { Box, Typography } from "@mui/material";
 import { ConversationWithDetails } from "@/types/messages";
 import { getConversations } from "@/lib/api-messages";
 import { useSocket } from "@/hooks/useSocket";
 import ConversationList from "@/components/messages/ConversationList";
 import MessageThread from "@/components/messages/MessageThread";
 import NewMessageDialog from "@/components/messages/NewMessageDialog";
-import LeftSidebar from "@/components/layout/LeftSidebar";
+import MessageLayout from "@/components/layout/MessageLayout";
 
 export default function MessagesPage() {
   const { user, loading: authLoading } = useAuth();
@@ -86,9 +87,16 @@ export default function MessagesPage() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+        }}
+      >
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
+      </Box>
     );
   }
 
@@ -97,45 +105,54 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white dark:bg-black">
-      {/* Left Sidebar */}
-      <LeftSidebar />
-
-      {/* Messages Layout - Using full main + right sidebar space */}
-      <div className="flex flex-1 border-l border-r border-gray-200 dark:border-gray-700">
-        {/* Conversation List - 40% */}
-        <div className="w-[40%] border-r border-gray-200 dark:border-gray-700">
+    <>
+      <MessageLayout
+        conversationList={
           <ConversationList
             currentUserId={user.id}
             selectedConversationId={selectedConversation?.id || null}
             onSelectConversation={handleSelectConversation}
             onNewMessage={handleNewMessage}
           />
-        </div>
-
-        {/* Message Thread - 60% */}
-        <div className="w-[60%]">
-          {selectedConversation ? (
+        }
+        messageThread={
+          selectedConversation ? (
             <MessageThread
               conversation={selectedConversation}
               currentUserId={user.id}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <h2 className="text-2xl font-bold mb-2">Select a message</h2>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                p: 4,
+                textAlign: "center",
+              }}
+            >
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                Select a message
+              </Typography>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 3 }}
+              >
                 Choose from your existing conversations, or start a new one.
-              </p>
+              </Typography>
               <button
                 onClick={handleNewMessage}
                 className="px-6 py-3 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition-colors"
               >
                 New message
               </button>
-            </div>
-          )}
-        </div>
-      </div>
+            </Box>
+          )
+        }
+      />
 
       {/* New Message Dialog */}
       <NewMessageDialog
@@ -144,6 +161,6 @@ export default function MessagesPage() {
         currentUserId={user.id}
         onConversationCreated={handleConversationCreated}
       />
-    </div>
+    </>
   );
 }

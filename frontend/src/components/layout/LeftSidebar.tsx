@@ -64,7 +64,7 @@ export default function LeftSidebar() {
       icon: <Mail fontSize="medium" />,
       label: "メッセージ",
       path: "/messages",
-      active: false,
+      active: true,
     },
     {
       icon: <span style={{ fontSize: "24px" }}>𝕏</span>,

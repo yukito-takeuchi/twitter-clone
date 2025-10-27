@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, DialogContent, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { Link as LinkIcon, Code as CodeIcon } from '@mui/icons-material';
+import { Link as LinkIcon, Share as ShareIcon, Mail as MailIcon } from '@mui/icons-material';
 import { useState } from 'react';
 
 interface SharePostDialogProps {
@@ -32,20 +32,6 @@ export default function SharePostDialog({
       }, 1500);
     } catch (error) {
       console.error('Failed to copy link:', error);
-    }
-  };
-
-  const handleCopyEmbed = async () => {
-    try {
-      // Same as link for now (can be customized later)
-      await navigator.clipboard.writeText(fullPostUrl);
-      setCopySuccess('埋め込み用リンクをコピーしました');
-      setTimeout(() => {
-        setCopySuccess(null);
-        onClose();
-      }, 1500);
-    } catch (error) {
-      console.error('Failed to copy embed link:', error);
     }
   };
 
@@ -83,12 +69,27 @@ export default function SharePostDialog({
 
             <Divider />
 
-            <ListItemButton onClick={handleCopyEmbed} sx={{ py: 1.5 }}>
+            <ListItemButton disabled sx={{ py: 1.5 }}>
               <ListItemIcon sx={{ minWidth: 48 }}>
-                <CodeIcon />
+                <ShareIcon />
               </ListItemIcon>
               <ListItemText
-                primary="ポストを埋め込む"
+                primary="その他の方法でポストを共有…"
+                primaryTypographyProps={{
+                  fontSize: '15px',
+                  fontWeight: 500,
+                }}
+              />
+            </ListItemButton>
+
+            <Divider />
+
+            <ListItemButton disabled sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 48 }}>
+                <MailIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="ダイレクトメッセージで送信"
                 primaryTypographyProps={{
                   fontSize: '15px',
                   fontWeight: 500,

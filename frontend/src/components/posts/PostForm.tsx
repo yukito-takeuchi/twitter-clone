@@ -107,9 +107,16 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
         imageUrl = urls.join(","); // Join all URLs with commas
       }
 
+      // Remove post URL from content if quoting
+      let cleanContent = content.trim();
+      if (quotedPost) {
+        const postUrlRegex = /https?:\/\/[^\s]+\/post\/[0-9a-f-]+/gi;
+        cleanContent = cleanContent.replace(postUrlRegex, '').trim();
+      }
+
       await postApi.create({
         user_id: user.id,
-        content: content.trim(),
+        content: cleanContent,
         image_url: imageUrl,
         quoted_post_id: quotedPost?.id,
       });

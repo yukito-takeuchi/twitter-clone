@@ -35,6 +35,9 @@ COPY --from=builder /app/src/scripts ./src/scripts
 # Copy migration files
 COPY --from=builder /app/migrations ./migrations
 
+# Copy uploads directory
+COPY --from=builder /app/uploads ./uploads
+
 # Heroku sets PORT environment variable dynamically
 ENV NODE_ENV=production
 

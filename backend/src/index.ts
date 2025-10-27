@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import { createServer } from "http";
 import { config } from "./config";
 import { query } from "./config/database";
 import { errorHandler } from "./middlewares/errorHandler";
+import { initializeSocket } from "./config/socket";
 
 // Import routes
 import userRoutes from "./routes/users";
@@ -12,9 +14,14 @@ import postRoutes from "./routes/posts";
 import likeRoutes from "./routes/likes";
 import followRoutes from "./routes/follows";
 import imageRoutes from "./routes/images";
+import conversationRoutes from "./routes/conversations";
+import messageRoutes from "./routes/messages";
 
 const app = express();
 const PORT = config.port;
+
+// Create HTTP server for Socket.IO
+const httpServer = createServer(app);
 
 // Middlewares
 app.use(cors({
@@ -67,12 +74,21 @@ app.use("/api/posts", postRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/follows", followRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Initialize Socket.IO
+const io = initializeSocket(httpServer);
+
+// Make io available to routes if needed
+app.set("io", io);
+
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Environment: ${config.nodeEnv}`);
   console.log(`🗄️  Database: ${config.databaseUrl.replace(/:[^:]*@/, ':****@')}`);
+  console.log(`🔌 Socket.IO ready for real-time messaging`);
 });

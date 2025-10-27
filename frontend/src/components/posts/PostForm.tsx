@@ -1,17 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { Box, TextField, Button, Avatar, Paper, IconButton } from '@mui/material';
-import { Image as ImageIcon, Close } from '@mui/icons-material';
-import { useAuth } from '@/contexts/AuthContext';
-import { postApi, imageApi } from '@/lib/api';
+import { useState, useRef } from "react";
+import {
+  Box,
+  TextField,
+  Button,
+  Avatar,
+  Paper,
+  IconButton,
+} from "@mui/material";
+import { Image as ImageIcon, Close } from "@mui/icons-material";
+import { useAuth } from "@/contexts/AuthContext";
+import { postApi, imageApi } from "@/lib/api";
 
 interface PostFormProps {
   onPostCreated?: () => void;
 }
 
 export default function PostForm({ onPostCreated }: PostFormProps) {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +28,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + selectedFiles.length > 4) {
-      alert('画像は最大4枚までです');
+      alert("画像は最大4枚までです");
       return;
     }
 
@@ -54,7 +61,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
       // Upload images if any
       if (selectedFiles.length > 0) {
         const urls = await imageApi.uploadImages(selectedFiles, user.id);
-        imageUrl = urls.join(','); // Join all URLs with commas
+        imageUrl = urls.join(","); // Join all URLs with commas
       }
 
       await postApi.create({
@@ -63,24 +70,28 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
         image_url: imageUrl,
       });
 
-      setContent('');
+      setContent("");
       setSelectedFiles([]);
       setPreviews([]);
       onPostCreated?.();
     } catch (error) {
-      console.error('Failed to create post:', error);
-      alert('投稿に失敗しました');
+      console.error("Failed to create post:", error);
+      alert("投稿に失敗しました");
     } finally {
       setLoading(false);
     }
   };
 
   const getImageUrl = (url: string | null) => {
-    if (!url) return '';
-    if (url.startsWith('http')) {
+    if (!url) return "";
+    if (url.startsWith("http")) {
       return url;
     }
-    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+    // Ensure we have a proper base URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
+    return `${baseUrl}${url}`;
   };
 
   if (!user) return null;
@@ -90,13 +101,15 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
       elevation={0}
       sx={{
         p: 2,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        borderBottom: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Box component="form" onSubmit={handleSubmit}>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Avatar src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Avatar
+            src={user.avatar_url ? getImageUrl(user.avatar_url) : undefined}
+          >
             {user.display_name?.[0] || user.username[0]}
           </Avatar>
           <Box sx={{ flex: 1 }}>
@@ -109,7 +122,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
               onChange={(e) => setContent(e.target.value)}
               variant="standard"
               InputProps={{ disableUnderline: true }}
-              sx={{ fontSize: '20px' }}
+              sx={{ fontSize: "20px" }}
               inputProps={{ maxLength: 280 }}
             />
 
@@ -117,23 +130,24 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
             {previews.length > 0 && (
               <Box
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: previews.length === 1 ? '1fr' : '1fr 1fr',
+                  display: "grid",
+                  gridTemplateColumns:
+                    previews.length === 1 ? "1fr" : "1fr 1fr",
                   gap: 1,
                   mt: 2,
                   borderRadius: 2,
-                  overflow: 'hidden',
+                  overflow: "hidden",
                 }}
               >
                 {previews.map((preview, index) => (
                   <Box
                     key={index}
                     sx={{
-                      position: 'relative',
-                      paddingTop: '100%',
-                      bgcolor: 'action.hover',
+                      position: "relative",
+                      paddingTop: "100%",
+                      bgcolor: "action.hover",
                       borderRadius: 2,
-                      overflow: 'hidden',
+                      overflow: "hidden",
                     }}
                   >
                     <Box
@@ -141,24 +155,24 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                       src={preview}
                       alt={`Preview ${index + 1}`}
                       sx={{
-                        position: 'absolute',
+                        position: "absolute",
                         top: 0,
                         left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
                       }}
                     />
                     <IconButton
                       onClick={() => handleRemoveImage(index)}
                       sx={{
-                        position: 'absolute',
+                        position: "absolute",
                         top: 4,
                         right: 4,
-                        bgcolor: 'rgba(0, 0, 0, 0.7)',
-                        color: 'white',
-                        '&:hover': {
-                          bgcolor: 'rgba(0, 0, 0, 0.9)',
+                        bgcolor: "rgba(0, 0, 0, 0.7)",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "rgba(0, 0, 0, 0.9)",
                         },
                         width: 32,
                         height: 32,
@@ -173,29 +187,29 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
 
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 mt: 2,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleFileSelect}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
                 <IconButton
                   onClick={() => fileInputRef.current?.click()}
                   disabled={selectedFiles.length >= 4}
-                  sx={{ color: 'secondary.main' }}
+                  sx={{ color: "secondary.main" }}
                 >
                   <ImageIcon />
                 </IconButton>
-                <Box sx={{ color: 'text.secondary', fontSize: '14px' }}>
+                <Box sx={{ color: "text.secondary", fontSize: "14px" }}>
                   {content.length}/280
                 </Box>
               </Box>
@@ -207,7 +221,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                   px: 3,
                 }}
               >
-                {loading ? '投稿中...' : 'ポスト'}
+                {loading ? "投稿中..." : "ポスト"}
               </Button>
             </Box>
           </Box>

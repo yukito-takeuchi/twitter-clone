@@ -17,6 +17,17 @@ export default function MessageItem({
   const isSentByMe = message.sender_id === currentUserId;
   const isRead = message.is_read_by_recipient;
 
+  const getImageUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http")) {
+      return url;
+    }
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
+    return `${baseUrl}${url}`;
+  };
+
   return (
     <div
       className={`flex items-end gap-2 mb-4 ${
@@ -46,7 +57,7 @@ export default function MessageItem({
           {message.message_type === "image" && message.image_url && (
             <div>
               <Image
-                src={message.image_url}
+                src={getImageUrl(message.image_url)}
                 alt="Message image"
                 width={300}
                 height={300}

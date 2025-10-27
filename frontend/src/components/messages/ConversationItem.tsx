@@ -26,6 +26,14 @@ export default function ConversationItem({
     conversation.last_message_type
   );
 
+  const getImageUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http")) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${url}`;
+  };
+
   return (
     <div
       onClick={onClick}
@@ -40,7 +48,7 @@ export default function ConversationItem({
       <div className="flex-shrink-0">
         {otherParticipant.avatar ? (
           <Image
-            src={otherParticipant.avatar}
+            src={getImageUrl(otherParticipant.avatar)}
             alt={otherParticipant.display_name}
             width={48}
             height={48}

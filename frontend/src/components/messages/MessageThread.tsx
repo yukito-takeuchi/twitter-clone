@@ -27,6 +27,14 @@ export default function MessageThread({
 
   const otherParticipant = getOtherParticipant(conversation, currentUserId);
 
+  const getImageUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http")) {
+      return url;
+    }
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${url}`;
+  };
+
   // Join conversation room
   useConversation(conversation.id, currentUserId);
 
@@ -137,7 +145,7 @@ export default function MessageThread({
         }}
       >
         <Avatar
-          src={otherParticipant.avatar || undefined}
+          src={otherParticipant.avatar ? getImageUrl(otherParticipant.avatar) : undefined}
           alt={otherParticipant.display_name}
           sx={{ width: 40, height: 40 }}
         >
@@ -177,24 +185,13 @@ export default function MessageThread({
           </Box>
         ) : (
           <>
-            {messages.map((message, index) => {
-              const prevMessage = messages[index - 1];
-              const showAvatar =
-                !prevMessage ||
-                prevMessage.sender_id !== message.sender_id ||
-                new Date(message.created_at).getTime() -
-                  new Date(prevMessage.created_at).getTime() >
-                  60000; // 1 minute
-
-              return (
-                <MessageItem
-                  key={message.id}
-                  message={message}
-                  currentUserId={currentUserId}
-                  showAvatar={showAvatar}
-                />
-              );
-            })}
+            {messages.map((message) => (
+              <MessageItem
+                key={message.id}
+                message={message}
+                currentUserId={currentUserId}
+              />
+            ))}
           </>
         )}
 

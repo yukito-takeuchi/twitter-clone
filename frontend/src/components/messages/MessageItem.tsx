@@ -8,13 +8,11 @@ import { CheckIcon, CheckCheckIcon } from "lucide-react";
 interface MessageItemProps {
   message: MessageWithDetails;
   currentUserId: string;
-  showAvatar?: boolean;
 }
 
 export default function MessageItem({
   message,
   currentUserId,
-  showAvatar = true,
 }: MessageItemProps) {
   const isSentByMe = message.sender_id === currentUserId;
   const isRead = message.is_read_by_recipient;
@@ -25,27 +23,6 @@ export default function MessageItem({
         isSentByMe ? "flex-row-reverse" : "flex-row"
       }`}
     >
-      {/* Avatar */}
-      {showAvatar && !isSentByMe && (
-        <div className="flex-shrink-0">
-          {message.sender_avatar ? (
-            <Image
-              src={message.sender_avatar}
-              alt={message.sender_display_name}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-              <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                {message.sender_display_name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Message Content */}
       <div
         className={`flex flex-col max-w-[70%] ${
@@ -119,9 +96,6 @@ export default function MessageItem({
           )}
         </div>
       </div>
-
-      {/* Spacer for sent messages (to align with avatar on other side) */}
-      {isSentByMe && showAvatar && <div className="w-8" />}
     </div>
   );
 }

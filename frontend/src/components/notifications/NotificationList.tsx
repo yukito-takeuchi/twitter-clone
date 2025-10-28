@@ -1,5 +1,6 @@
 "use client";
 
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { Notification } from "@/types/notification";
 import NotificationItem from "./NotificationItem";
 
@@ -20,30 +21,35 @@ export default function NotificationList({
 }: NotificationListProps) {
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      </div>
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">{error}</p>
-      </div>
+      <Box sx={{ textAlign: "center", py: 6 }}>
+        <Typography color="error">{error}</Typography>
+      </Box>
     );
   }
 
   if (notifications.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">通知はありません</p>
-      </div>
+      <Box sx={{ textAlign: "center", py: 6 }}>
+        <Typography variant="h6" color="text.secondary">
+          通知はありません
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          アクティビティが発生すると、ここに表示されます
+        </Typography>
+      </Box>
     );
   }
 
   return (
-    <div>
+    <Box>
       {notifications.map((notification) => (
         <NotificationItem
           key={notification.id}
@@ -52,6 +58,6 @@ export default function NotificationList({
           onDelete={onDelete}
         />
       ))}
-    </div>
+    </Box>
   );
 }

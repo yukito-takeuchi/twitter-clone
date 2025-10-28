@@ -1,6 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Box, Typography, Avatar } from "@mui/material";
+import {
+  Favorite,
+  Repeat,
+  PersonAdd,
+  ChatBubbleOutline,
+  FormatQuote,
+  Notifications as NotificationsIcon,
+} from "@mui/icons-material";
 import {
   Notification,
   NotificationContentLike,
@@ -11,7 +20,6 @@ import {
 } from "@/types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Heart, Repeat2, UserPlus, MessageCircle, Quote, Bell } from "lucide-react";
 
 interface NotificationItemProps {
   notification: Notification;
@@ -33,57 +41,58 @@ export default function NotificationItem({
     // Navigate based on notification type
     if (notification.notification_type === "follow" && notification.related_user_id) {
       const content = notification.content as NotificationContentFollow;
-      router.push(`/${content.follower_username}`);
+      router.push(`/profile/${content.follower_username}`);
     } else if (notification.related_post_id) {
       router.push(`/post/${notification.related_post_id}`);
     }
   };
 
   const renderIcon = () => {
-    const iconClass = "w-8 h-8 p-1.5 rounded-full";
+    const iconSize = 32;
+    const iconProps = { sx: { fontSize: iconSize } };
 
     switch (notification.notification_type) {
       case "like":
         return (
-          <div className={`${iconClass} bg-pink-100`}>
-            <Heart className="w-full h-full text-pink-500 fill-pink-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(249, 24, 128, 0.1)", width: 40, height: 40 }}>
+            <Favorite sx={{ color: "rgb(249, 24, 128)", fontSize: 20 }} />
+          </Avatar>
         );
       case "repost":
         return (
-          <div className={`${iconClass} bg-green-100`}>
-            <Repeat2 className="w-full h-full text-green-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(0, 186, 124, 0.1)", width: 40, height: 40 }}>
+            <Repeat sx={{ color: "rgb(0, 186, 124)", fontSize: 20 }} />
+          </Avatar>
         );
       case "follow":
         return (
-          <div className={`${iconClass} bg-blue-100`}>
-            <UserPlus className="w-full h-full text-blue-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(29, 155, 240, 0.1)", width: 40, height: 40 }}>
+            <PersonAdd sx={{ color: "rgb(29, 155, 240)", fontSize: 20 }} />
+          </Avatar>
         );
       case "reply":
         return (
-          <div className={`${iconClass} bg-blue-100`}>
-            <MessageCircle className="w-full h-full text-blue-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(29, 155, 240, 0.1)", width: 40, height: 40 }}>
+            <ChatBubbleOutline sx={{ color: "rgb(29, 155, 240)", fontSize: 20 }} />
+          </Avatar>
         );
       case "quote":
         return (
-          <div className={`${iconClass} bg-gray-100`}>
-            <Quote className="w-full h-full text-gray-600" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(0, 0, 0, 0.05)", width: 40, height: 40 }}>
+            <FormatQuote sx={{ color: "text.secondary", fontSize: 20 }} />
+          </Avatar>
         );
       case "new_post":
         return (
-          <div className={`${iconClass} bg-blue-100`}>
-            <Bell className="w-full h-full text-blue-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(29, 155, 240, 0.1)", width: 40, height: 40 }}>
+            <NotificationsIcon sx={{ color: "rgb(29, 155, 240)", fontSize: 20 }} />
+          </Avatar>
         );
       default:
         return (
-          <div className={`${iconClass} bg-gray-100`}>
-            <Bell className="w-full h-full text-gray-500" />
-          </div>
+          <Avatar sx={{ bgcolor: "rgba(0, 0, 0, 0.05)", width: 40, height: 40 }}>
+            <NotificationsIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+          </Avatar>
         );
     }
   };
@@ -93,86 +102,151 @@ export default function NotificationItem({
       case "like": {
         const content = notification.content as NotificationContentLike;
         return (
-          <div>
-            <p className="font-semibold">{content.liker_display_name}</p>
-            <p className="text-gray-600 text-sm">があなたのポストをいいねしました</p>
-            <p className="text-gray-500 text-sm mt-2">{content.post_content}</p>
-          </div>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {content.liker_display_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "14px" }}>
+              があなたのポストをいいねしました
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "14px", mt: 1 }}
+            >
+              {content.post_content}
+            </Typography>
+          </Box>
         );
       }
       case "follow": {
         const content = notification.content as NotificationContentFollow;
         return (
-          <div>
-            <p className="font-semibold">{content.follower_display_name}</p>
-            <p className="text-gray-600 text-sm">があなたをフォローしました</p>
-          </div>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {content.follower_display_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "14px" }}>
+              があなたをフォローしました
+            </Typography>
+          </Box>
         );
       }
       case "reply": {
         const content = notification.content as NotificationContentReply;
         return (
-          <div>
-            <p className="font-semibold">{content.replier_display_name}</p>
-            <p className="text-gray-600 text-sm">があなたのポストに返信しました</p>
-            <p className="text-gray-500 text-sm mt-2">{content.reply_content}</p>
-          </div>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {content.replier_display_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "14px" }}>
+              があなたのポストに返信しました
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "14px", mt: 1 }}
+            >
+              {content.reply_content}
+            </Typography>
+          </Box>
         );
       }
       case "quote": {
         const content = notification.content as NotificationContentQuote;
         return (
-          <div>
-            <p className="font-semibold">{content.quoter_display_name}</p>
-            <p className="text-gray-600 text-sm">があなたのポストを引用しました</p>
-            <p className="text-gray-500 text-sm mt-2">{content.quote_content}</p>
-          </div>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {content.quoter_display_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "14px" }}>
+              があなたのポストを引用しました
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "14px", mt: 1 }}
+            >
+              {content.quote_content}
+            </Typography>
+          </Box>
         );
       }
       case "new_post": {
         const content = notification.content as NotificationContentNewPost;
         return (
-          <div>
-            <p className="font-semibold">{content.poster_display_name}</p>
-            <p className="text-gray-600 text-sm">が新しいポストを投稿しました</p>
-            <p className="text-gray-500 text-sm mt-2">{content.post_content}</p>
-          </div>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {content.poster_display_name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "14px" }}>
+              が新しいポストを投稿しました
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "14px", mt: 1 }}
+            >
+              {content.post_content}
+            </Typography>
+          </Box>
         );
       }
       default:
-        return <p className="text-gray-600">通知</p>;
+        return (
+          <Typography variant="body2" color="text.secondary">
+            通知
+          </Typography>
+        );
     }
   };
 
   return (
-    <div
+    <Box
       onClick={handleClick}
-      className={`
-        flex gap-3 p-4 border-b border-gray-200
-        hover:bg-gray-50 cursor-pointer transition-colors
-        ${!notification.is_read ? "bg-blue-50/30" : ""}
-      `}
+      sx={{
+        display: "flex",
+        gap: 1.5,
+        p: 2,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        bgcolor: !notification.is_read ? "rgba(29, 155, 240, 0.05)" : "transparent",
+        cursor: "pointer",
+        transition: "background-color 0.2s",
+        "&:hover": {
+          bgcolor: !notification.is_read
+            ? "rgba(29, 155, 240, 0.08)"
+            : "action.hover",
+        },
+      }}
     >
       {/* Icon */}
-      <div className="flex-shrink-0">{renderIcon()}</div>
+      <Box sx={{ flexShrink: 0 }}>{renderIcon()}</Box>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <Box sx={{ flex: 1, minWidth: 0 }}>
         {renderContent()}
-        <p className="text-gray-400 text-xs mt-2">
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
           {formatDistanceToNow(new Date(notification.created_at), {
             addSuffix: true,
             locale: ja,
           })}
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
       {/* Unread indicator */}
       {!notification.is_read && (
-        <div className="flex-shrink-0">
-          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-        </div>
+        <Box sx={{ flexShrink: 0, display: "flex", alignItems: "flex-start", pt: 0.5 }}>
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              bgcolor: "rgb(29, 155, 240)",
+              borderRadius: "50%",
+            }}
+          />
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

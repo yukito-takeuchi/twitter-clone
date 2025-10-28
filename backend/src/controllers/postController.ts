@@ -6,12 +6,13 @@ import { AppError, asyncHandler } from "../middlewares/errorHandler";
 export const postController = {
   // Create a new post
   createPost: asyncHandler(async (req: Request, res: Response) => {
-    const { user_id, content, image_url, reply_to_id, repost_of_id } = req.body;
+    const { user_id, content, image_url, reply_to_id, repost_of_id, quoted_post_id } = req.body;
 
     console.log('[postController] Creating post:', {
       user_id,
       user_id_type: typeof user_id,
       content: content?.substring(0, 20),
+      quoted_post_id,
       body: req.body,
     });
 
@@ -37,12 +38,21 @@ export const postController = {
       }
     }
 
+    // If quoting, check if quoted post exists
+    if (quoted_post_id) {
+      const quotedPost = await PostModel.findById(quoted_post_id);
+      if (!quotedPost) {
+        throw new AppError("Quoted post not found", 404);
+      }
+    }
+
     const post = await PostModel.create({
       user_id,
       content,
       image_url,
       reply_to_id,
       repost_of_id,
+      quoted_post_id,
     });
 
     res.status(201).json({

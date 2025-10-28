@@ -23,6 +23,8 @@ import ImageModal from "@/components/common/ImageModal";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
 import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
+import SharePostDialog from "@/components/posts/SharePostDialog";
+import QuotedPostCard from "@/components/posts/QuotedPostCard";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -43,6 +45,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -264,6 +267,11 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             {post.content}
           </Typography>
 
+          {/* Quoted Post */}
+          {post.quoted_post && (
+            <QuotedPostCard quotedPost={post.quoted_post} />
+          )}
+
           {/* Images */}
           {images.length > 0 && (
             <Box
@@ -456,6 +464,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               </IconButton>
               <IconButton
                 size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShareDialogOpen(true);
+                }}
                 sx={{
                   color: "text.secondary",
                   "&:hover": {
@@ -504,6 +516,13 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         initialContent={post.content}
         onClose={() => setEditDialogOpen(false)}
         onUpdated={handleUpdated}
+      />
+
+      {/* Share Post Dialog */}
+      <SharePostDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        postId={post.id}
       />
     </Paper>
   );

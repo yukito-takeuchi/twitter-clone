@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -12,6 +12,8 @@ import {
 import { Image as ImageIcon, Close } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import { postApi, imageApi } from "@/lib/api";
+import QuotedPostCard from "./QuotedPostCard";
+import type { QuotedPost } from "@/types";
 
 interface PostFormProps {
   onPostCreated?: () => void;
@@ -22,8 +24,49 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [quotedPost, setQuotedPost] = useState<QuotedPost | null>(null);
+  const [detectedPostId, setDetectedPostId] = useState<string | null>(null);
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Detect post URL in content
+  useEffect(() => {
+    const detectPostUrl = async () => {
+      // Match /post/[uuid] pattern
+      const postUrlRegex = /\/post\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+      const match = content.match(postUrlRegex);
+
+      if (match && match[1]) {
+        const postId = match[1];
+        // Only fetch if different from current
+        if (postId !== detectedPostId) {
+          setDetectedPostId(postId);
+          try {
+            const post = await postApi.getById(postId, user?.id);
+            setQuotedPost({
+              id: post.id,
+              user_id: post.user_id,
+              username: post.username,
+              display_name: post.display_name,
+              avatar_url: post.avatar_url,
+              content: post.content,
+              image_url: post.image_url,
+              created_at: post.created_at,
+            });
+          } catch (error) {
+            console.error("Failed to fetch quoted post:", error);
+            setQuotedPost(null);
+          }
+        }
+      } else {
+        // No URL detected, clear
+        setDetectedPostId(null);
+        setQuotedPost(null);
+      }
+    };
+
+    detectPostUrl();
+  }, [content, detectedPostId, user?.id]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -64,15 +107,25 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
         imageUrl = urls.join(","); // Join all URLs with commas
       }
 
+      // Remove post URL from content if quoting
+      let cleanContent = content.trim();
+      if (quotedPost) {
+        const postUrlRegex = /https?:\/\/[^\s]+\/post\/[0-9a-f-]+/gi;
+        cleanContent = cleanContent.replace(postUrlRegex, '').trim();
+      }
+
       await postApi.create({
         user_id: user.id,
-        content: content.trim(),
+        content: cleanContent,
         image_url: imageUrl,
+        quoted_post_id: quotedPost?.id,
       });
 
       setContent("");
       setSelectedFiles([]);
       setPreviews([]);
+      setQuotedPost(null);
+      setDetectedPostId(null);
       onPostCreated?.();
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -125,6 +178,13 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
               sx={{ fontSize: "20px" }}
               inputProps={{ maxLength: 280 }}
             />
+
+            {/* Quoted Post Preview */}
+            {quotedPost && (
+              <Box sx={{ mt: 2 }}>
+                <QuotedPostCard quotedPost={quotedPost} />
+              </Box>
+            )}
 
             {/* Image Previews */}
             {previews.length > 0 && (

@@ -7,6 +7,7 @@ export interface Post {
   image_url: string | null;
   reply_to_id: string | null;
   repost_of_id: string | null;
+  quoted_post_id: string | null;
   is_deleted: boolean;
   view_count: number;
   created_at: Date;
@@ -19,11 +20,23 @@ export interface CreatePostInput {
   image_url?: string;
   reply_to_id?: string;
   repost_of_id?: string;
+  quoted_post_id?: string;
 }
 
 export interface UpdatePostInput {
   content?: string;
   image_url?: string;
+}
+
+export interface QuotedPost {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  content: string;
+  image_url: string | null;
+  created_at: Date;
 }
 
 export interface PostWithStats extends Post {
@@ -34,14 +47,15 @@ export interface PostWithStats extends Post {
   reply_count: number;
   retweet_count: number;
   is_liked_by_current_user?: boolean;
+  quoted_post?: QuotedPost | null;
 }
 
 export class PostModel {
   // Create a new post
   static async create(input: CreatePostInput): Promise<Post> {
     const result = await query(
-      `INSERT INTO posts (user_id, content, image_url, reply_to_id, repost_of_id)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO posts (user_id, content, image_url, reply_to_id, repost_of_id, quoted_post_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         input.user_id,
@@ -49,6 +63,7 @@ export class PostModel {
         input.image_url || null,
         input.reply_to_id || null,
         input.repost_of_id || null,
+        input.quoted_post_id || null,
       ]
     );
     return result.rows[0];
@@ -74,12 +89,43 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
-        0 as retweet_count
+        0 as retweet_count,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
-       WHERE id = $1`,
+       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE pws.id = $1`,
       [id, currentUserId || null]
     );
-    return result.rows[0] || null;
+
+    const row = result.rows[0];
+    if (!row) return null;
+
+    // Format quoted post if exists
+    const post: PostWithStats = { ...row };
+    if (row.quoted_post_id_info) {
+      post.quoted_post = {
+        id: row.quoted_post_id_info,
+        user_id: row.quoted_post_user_id,
+        username: row.quoted_post_username,
+        display_name: row.quoted_post_display_name,
+        avatar_url: row.quoted_post_avatar_url,
+        content: row.quoted_post_content,
+        image_url: row.quoted_post_image_url,
+        created_at: row.quoted_post_created_at,
+      };
+    }
+
+    return post;
   }
 
   // Get posts by user ID (excluding replies)
@@ -98,14 +144,43 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
-        0 as retweet_count
+        0 as retweet_count,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
-       WHERE user_id = $1 AND reply_to_id IS NULL
-       ORDER BY created_at DESC
+       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE pws.user_id = $1 AND pws.reply_to_id IS NULL
+       ORDER BY pws.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
     );
-    return result.rows;
+
+    // Format quoted posts
+    return result.rows.map((row) => {
+      const post: PostWithStats = { ...row };
+      if (row.quoted_post_id_info) {
+        post.quoted_post = {
+          id: row.quoted_post_id_info,
+          user_id: row.quoted_post_user_id,
+          username: row.quoted_post_username,
+          display_name: row.quoted_post_display_name,
+          avatar_url: row.quoted_post_avatar_url,
+          content: row.quoted_post_content,
+          image_url: row.quoted_post_image_url,
+          created_at: row.quoted_post_created_at,
+        };
+      }
+      return post;
+    });
   }
 
   // Get replies by user ID
@@ -124,14 +199,43 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
-        0 as retweet_count
+        0 as retweet_count,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
-       WHERE user_id = $1 AND reply_to_id IS NOT NULL
-       ORDER BY created_at DESC
+       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE pws.user_id = $1 AND pws.reply_to_id IS NOT NULL
+       ORDER BY pws.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
     );
-    return result.rows;
+
+    // Format quoted posts
+    return result.rows.map((row) => {
+      const post: PostWithStats = { ...row };
+      if (row.quoted_post_id_info) {
+        post.quoted_post = {
+          id: row.quoted_post_id_info,
+          user_id: row.quoted_post_user_id,
+          username: row.quoted_post_username,
+          display_name: row.quoted_post_display_name,
+          avatar_url: row.quoted_post_avatar_url,
+          content: row.quoted_post_content,
+          image_url: row.quoted_post_image_url,
+          created_at: row.quoted_post_created_at,
+        };
+      }
+      return post;
+    });
   }
 
   // Get timeline posts (posts from followed users only, excluding replies)
@@ -174,14 +278,43 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
-        0 as retweet_count
+        0 as retweet_count,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
-       WHERE reply_to_id IS NULL
-       ORDER BY created_at DESC
+       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE pws.reply_to_id IS NULL
+       ORDER BY pws.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset, currentUserId || null]
     );
-    return result.rows;
+
+    // Format quoted posts
+    return result.rows.map((row) => {
+      const post: PostWithStats = { ...row };
+      if (row.quoted_post_id_info) {
+        post.quoted_post = {
+          id: row.quoted_post_id_info,
+          user_id: row.quoted_post_user_id,
+          username: row.quoted_post_username,
+          display_name: row.quoted_post_display_name,
+          avatar_url: row.quoted_post_avatar_url,
+          content: row.quoted_post_content,
+          image_url: row.quoted_post_image_url,
+          created_at: row.quoted_post_created_at,
+        };
+      }
+      return post;
+    });
   }
 
   // Get replies to a post

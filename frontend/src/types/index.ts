@@ -32,10 +32,22 @@ export interface Post {
   image_url: string | null;
   reply_to_id: string | null;
   repost_of_id: string | null;
+  quoted_post_id: string | null;
   is_deleted: boolean;
   view_count: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface QuotedPost {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  content: string;
+  image_url: string | null;
+  created_at: string;
 }
 
 export interface PostWithStats extends Post {
@@ -46,6 +58,7 @@ export interface PostWithStats extends Post {
   reply_count: number;
   retweet_count: number;
   is_liked_by_current_user?: boolean;
+  quoted_post?: QuotedPost | null;
 }
 
 // Like types
@@ -118,6 +131,7 @@ export interface CreatePostData {
   content: string;
   image_url?: string;
   reply_to_id?: string;
+  quoted_post_id?: string;
 }
 
 export interface UpdateProfileData {

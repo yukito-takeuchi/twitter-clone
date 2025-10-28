@@ -13,6 +13,7 @@ import {
   Button,
   Menu,
   MenuItem,
+  Badge,
 } from "@mui/material";
 import {
   Home,
@@ -34,12 +35,14 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function LeftSidebar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(menuAnchorEl);
+  const { unreadCount } = useNotifications(user?.id || null);
 
   const navItems = [
     {
@@ -57,8 +60,8 @@ export default function LeftSidebar() {
     {
       icon: <Notifications fontSize="medium" />,
       label: "通知",
-      path: "#",
-      active: false,
+      path: "/notifications",
+      active: true,
     },
     {
       icon: <Mail fontSize="medium" />,
@@ -198,7 +201,23 @@ export default function LeftSidebar() {
                     color: "text.primary",
                   }}
                 >
-                  {item.icon}
+                  {item.label === "通知" && unreadCount > 0 ? (
+                    <Badge
+                      badgeContent={unreadCount}
+                      color="primary"
+                      sx={{
+                        "& .MuiBadge-badge": {
+                          bgcolor: "rgb(29, 155, 240)",
+                          color: "white",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    >
+                      {item.icon}
+                    </Badge>
+                  ) : (
+                    item.icon
+                  )}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}

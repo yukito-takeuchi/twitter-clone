@@ -1,6 +1,7 @@
 import { query } from "../config/database";
+import { NotificationSettingsModel } from "./NotificationSettings";
 
-export type NotificationType = "dm" | "like" | "follow" | "reply" | "mention" | "repost";
+export type NotificationType = "dm" | "like" | "follow" | "reply" | "mention" | "repost" | "quote" | "new_post";
 
 export interface Notification {
   id: string;
@@ -48,6 +49,25 @@ export interface NotificationContentReply {
   replier_display_name: string;
   reply_content: string;
   original_post_content: string;
+}
+
+export interface NotificationContentQuote {
+  quoter_username: string;
+  quoter_display_name: string;
+  quote_content: string;
+  original_post_content: string;
+}
+
+export interface NotificationContentRepost {
+  reposter_username: string;
+  reposter_display_name: string;
+  post_content: string;
+}
+
+export interface NotificationContentNewPost {
+  poster_username: string;
+  poster_display_name: string;
+  post_content: string;
 }
 
 export class NotificationModel {
@@ -291,7 +311,9 @@ export class NotificationModel {
         COUNT(*) FILTER (WHERE notification_type = 'follow') as follow_count,
         COUNT(*) FILTER (WHERE notification_type = 'reply') as reply_count,
         COUNT(*) FILTER (WHERE notification_type = 'mention') as mention_count,
-        COUNT(*) FILTER (WHERE notification_type = 'repost') as repost_count
+        COUNT(*) FILTER (WHERE notification_type = 'repost') as repost_count,
+        COUNT(*) FILTER (WHERE notification_type = 'quote') as quote_count,
+        COUNT(*) FILTER (WHERE notification_type = 'new_post') as new_post_count
        FROM notifications
        WHERE user_id = $1`,
       [userId]
@@ -309,7 +331,267 @@ export class NotificationModel {
         reply: parseInt(row.reply_count, 10),
         mention: parseInt(row.mention_count, 10),
         repost: parseInt(row.repost_count, 10),
+        quote: parseInt(row.quote_count, 10),
+        new_post: parseInt(row.new_post_count, 10),
       },
     };
+  }
+
+  /**
+   * Create a like notification
+   */
+  static async createLikeNotification(
+    postOwnerId: string,
+    likerId: string,
+    postId: string
+  ): Promise<Notification | null> {
+    // Don't notify if liking own post
+    if (postOwnerId === likerId) {
+      return null;
+    }
+
+    // Check if notification is enabled
+    const settings = await NotificationSettingsModel.findByUserId(postOwnerId);
+    if (!settings.enable_likes) {
+      return null;
+    }
+
+    // Get liker info and post content
+    const result = await query(
+      `SELECT
+        u.username as liker_username,
+        u.display_name as liker_display_name,
+        p.content as post_content
+       FROM users u, posts p
+       WHERE u.id = $1 AND p.id = $2`,
+      [likerId, postId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const { liker_username, liker_display_name, post_content } = result.rows[0];
+
+    const content: NotificationContentLike = {
+      liker_username,
+      liker_display_name,
+      post_content: post_content.substring(0, 100),
+    };
+
+    return this.create({
+      user_id: postOwnerId,
+      notification_type: "like",
+      content,
+      related_user_id: likerId,
+      related_post_id: postId,
+    });
+  }
+
+  /**
+   * Create a reply notification
+   */
+  static async createReplyNotification(
+    originalPostOwnerId: string,
+    replierId: string,
+    replyPostId: string,
+    originalPostId: string
+  ): Promise<Notification | null> {
+    // Don't notify if replying to own post
+    if (originalPostOwnerId === replierId) {
+      return null;
+    }
+
+    // Check if notification is enabled
+    const settings = await NotificationSettingsModel.findByUserId(originalPostOwnerId);
+    if (!settings.enable_replies) {
+      return null;
+    }
+
+    // Get replier info and post contents
+    const result = await query(
+      `SELECT
+        u.username as replier_username,
+        u.display_name as replier_display_name,
+        p1.content as reply_content,
+        p2.content as original_content
+       FROM users u, posts p1, posts p2
+       WHERE u.id = $1 AND p1.id = $2 AND p2.id = $3`,
+      [replierId, replyPostId, originalPostId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const { replier_username, replier_display_name, reply_content, original_content } = result.rows[0];
+
+    const content: NotificationContentReply = {
+      replier_username,
+      replier_display_name,
+      reply_content: reply_content.substring(0, 100),
+      original_post_content: original_content.substring(0, 100),
+    };
+
+    return this.create({
+      user_id: originalPostOwnerId,
+      notification_type: "reply",
+      content,
+      related_user_id: replierId,
+      related_post_id: originalPostId, // 元の投稿IDを保存してグループ化を可能にする
+    });
+  }
+
+  /**
+   * Create a follow notification
+   */
+  static async createFollowNotification(
+    followedUserId: string,
+    followerId: string
+  ): Promise<Notification | null> {
+    // Check if notification is enabled
+    const settings = await NotificationSettingsModel.findByUserId(followedUserId);
+    if (!settings.enable_follows) {
+      return null;
+    }
+
+    // Get follower info
+    const result = await query(
+      `SELECT username, display_name FROM users WHERE id = $1`,
+      [followerId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const { username, display_name } = result.rows[0];
+
+    const content: NotificationContentFollow = {
+      follower_username: username,
+      follower_display_name: display_name,
+    };
+
+    return this.create({
+      user_id: followedUserId,
+      notification_type: "follow",
+      content,
+      related_user_id: followerId,
+    });
+  }
+
+  /**
+   * Create a quote (quote tweet) notification
+   */
+  static async createQuoteNotification(
+    originalPostOwnerId: string,
+    quoterId: string,
+    quotePostId: string,
+    originalPostId: string
+  ): Promise<Notification | null> {
+    // Don't notify if quoting own post
+    if (originalPostOwnerId === quoterId) {
+      return null;
+    }
+
+    // Check if notification is enabled
+    const settings = await NotificationSettingsModel.findByUserId(originalPostOwnerId);
+    if (!settings.enable_quotes) {
+      return null;
+    }
+
+    // Get quoter info and post contents
+    const result = await query(
+      `SELECT
+        u.username as quoter_username,
+        u.display_name as quoter_display_name,
+        p1.content as quote_content,
+        p2.content as original_content
+       FROM users u, posts p1, posts p2
+       WHERE u.id = $1 AND p1.id = $2 AND p2.id = $3`,
+      [quoterId, quotePostId, originalPostId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const { quoter_username, quoter_display_name, quote_content, original_content } = result.rows[0];
+
+    const content: NotificationContentQuote = {
+      quoter_username,
+      quoter_display_name,
+      quote_content: quote_content.substring(0, 100),
+      original_post_content: original_content.substring(0, 100),
+    };
+
+    return this.create({
+      user_id: originalPostOwnerId,
+      notification_type: "quote",
+      content,
+      related_user_id: quoterId,
+      related_post_id: originalPostId, // 元の投稿IDを保存してグループ化を可能にする
+    });
+  }
+
+  /**
+   * Create new post notifications for followers
+   */
+  static async createNewPostNotifications(
+    posterId: string,
+    postId: string
+  ): Promise<void> {
+    // Get post info
+    const postResult = await query(
+      `SELECT content FROM posts WHERE id = $1`,
+      [postId]
+    );
+
+    if (postResult.rows.length === 0) {
+      return;
+    }
+
+    const postContent = postResult.rows[0].content;
+
+    // Get poster info
+    const posterResult = await query(
+      `SELECT username, display_name FROM users WHERE id = $1`,
+      [posterId]
+    );
+
+    if (posterResult.rows.length === 0) {
+      return;
+    }
+
+    const { username, display_name } = posterResult.rows[0];
+
+    // Get followers who have this notification enabled
+    const followersResult = await query(
+      `SELECT DISTINCT f.follower_id
+       FROM follows f
+       JOIN notification_settings ns ON f.follower_id = ns.user_id
+       WHERE f.following_id = $1
+       AND ns.enable_new_posts_from_following = true`,
+      [posterId]
+    );
+
+    // Create notifications for each follower
+    const notificationPromises = followersResult.rows.map((row) => {
+      const content: NotificationContentNewPost = {
+        poster_username: username,
+        poster_display_name: display_name,
+        post_content: postContent.substring(0, 100),
+      };
+
+      return this.create({
+        user_id: row.follower_id,
+        notification_type: "new_post",
+        content,
+        related_user_id: posterId,
+        related_post_id: postId,
+      });
+    });
+
+    await Promise.all(notificationPromises);
   }
 }

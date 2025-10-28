@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { LikeModel } from "../models/Like";
 import { PostModel } from "../models/Post";
 import { UserModel } from "../models/User";
+import { NotificationModel } from "../models/Notification";
 import { AppError, asyncHandler } from "../middlewares/errorHandler";
 
 export const likeController = {
@@ -28,6 +29,14 @@ export const likeController = {
     }
 
     const like = await LikeModel.create({ user_id, post_id });
+
+    // Create like notification
+    try {
+      await NotificationModel.createLikeNotification(post.user_id, user_id, post_id);
+    } catch (error) {
+      console.error("Failed to create like notification:", error);
+      // Don't fail the like operation if notification fails
+    }
 
     res.status(201).json({
       status: "success",

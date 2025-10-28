@@ -61,6 +61,13 @@ export interface PostWithStats extends Post {
   is_bookmarked_by_current_user?: boolean;
   is_reposted_by_current_user?: boolean;
   quoted_post?: QuotedPost | null;
+  // Repost metadata (when post is displayed as a repost)
+  is_repost?: boolean;
+  reposted_at?: string;
+  reposted_by_user_id?: string;
+  reposted_by_username?: string;
+  reposted_by_display_name?: string;
+  reposted_by_avatar_url?: string;
 }
 
 // Like types

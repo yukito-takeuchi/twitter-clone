@@ -142,6 +142,11 @@ export class RepostModel {
       `SELECT
         p.*,
         r.created_at as reposted_at,
+        r.user_id as reposted_by_user_id,
+        ru.username as reposted_by_username,
+        ru.display_name as reposted_by_display_name,
+        rp.avatar_url as reposted_by_avatar_url,
+        true as is_repost,
         CASE
           WHEN $4::uuid IS NOT NULL THEN EXISTS(
             SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $4
@@ -171,6 +176,8 @@ export class RepostModel {
         qp.created_at as quoted_post_created_at
        FROM reposts r
        JOIN posts_with_stats p ON r.post_id = p.id
+       JOIN users ru ON r.user_id = ru.id
+       LEFT JOIN profiles rp ON ru.id = rp.user_id
        LEFT JOIN posts qp ON p.quoted_post_id = qp.id AND qp.is_deleted = false
        LEFT JOIN users qu ON qp.user_id = qu.id
        LEFT JOIN profiles qpr ON qu.id = qpr.user_id

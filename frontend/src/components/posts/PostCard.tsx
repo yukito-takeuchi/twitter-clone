@@ -225,6 +225,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
+      {/* Repost Header */}
+      {post.is_repost && post.reposted_by_username && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 1,
+            ml: 5,
+            color: "text.secondary"
+          }}
+        >
+          <RepeatOutlined sx={{ fontSize: 16 }} />
+          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
+            {post.reposted_by_display_name || post.reposted_by_username}さんがリポスト
+          </Typography>
+        </Box>
+      )}
+
       <Box sx={{ display: "flex", gap: 2 }}>
         {/* Avatar */}
         <Link

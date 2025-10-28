@@ -9,6 +9,7 @@ import {
   ChatBubbleOutline,
   FormatQuote,
   Notifications as NotificationsIcon,
+  Mail,
 } from "@mui/icons-material";
 import { GroupedNotification } from "@/types/notification";
 import { formatDistanceToNow } from "date-fns";
@@ -35,6 +36,15 @@ export default function NotificationGroupItem({
 
     // Navigate based on notification type (X-like behavior)
     switch (group.notification_type) {
+      case "dm":
+        // Go to the conversation
+        const firstNotif = group.notifications[0];
+        const dmContent = firstNotif.content as any;
+        if (dmContent.conversation_id) {
+          router.push(`/messages?conversation=${dmContent.conversation_id}`);
+        }
+        break;
+
       case "like":
       case "reply":
       case "quote":
@@ -62,6 +72,12 @@ export default function NotificationGroupItem({
 
   const renderIcon = () => {
     switch (group.notification_type) {
+      case "dm":
+        return (
+          <Avatar sx={{ bgcolor: "rgba(29, 155, 240, 0.1)", width: 40, height: 40 }}>
+            <Mail sx={{ color: "rgb(29, 155, 240)", fontSize: 20 }} />
+          </Avatar>
+        );
       case "like":
         return (
           <Avatar sx={{ bgcolor: "rgba(249, 24, 128, 0.1)", width: 40, height: 40 }}>
@@ -113,6 +129,11 @@ export default function NotificationGroupItem({
 
     let actionText = "";
     switch (group.notification_type) {
+      case "dm":
+        actionText = otherCount > 0
+          ? `から${group.count}件の新しいメッセージ`
+          : "から新しいメッセージ";
+        break;
       case "like":
         actionText = "があなたのポストをいいねしました";
         break;

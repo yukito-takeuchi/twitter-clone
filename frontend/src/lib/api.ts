@@ -185,6 +185,33 @@ export const bookmarkApi = {
   },
 };
 
+// Repost API
+export const repostApi = {
+  repost: async (data: { user_id: string; post_id: string }): Promise<void> => {
+    await api.post('/reposts', data);
+  },
+
+  unrepost: async (postId: string, userId: string): Promise<void> => {
+    await api.delete(`/reposts/${userId}/${postId}`);
+  },
+
+  checkIfReposted: async (userId: string, postId: string): Promise<boolean> => {
+    const response = await api.get<ApiResponse<{ has_reposted: boolean }>>(
+      `/reposts/check/${userId}/${postId}`
+    );
+    return response.data.data!.has_reposted;
+  },
+
+  getRepostedPosts: async (userId: string, limit = 20, offset = 0, currentUserId?: string): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (currentUserId) params.append('currentUserId', currentUserId);
+    const response = await api.get<ApiResponse<{ posts: PostWithStats[] }>>(
+      `/reposts/user/${userId}?${params.toString()}`
+    );
+    return response.data.data!.posts;
+  },
+};
+
 // Follow API
 export const followApi = {
   follow: async (followerId: string, followingId: string): Promise<void> => {

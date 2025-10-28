@@ -59,6 +59,7 @@ export interface PostWithStats extends Post {
   retweet_count: number;
   is_liked_by_current_user?: boolean;
   is_bookmarked_by_current_user?: boolean;
+  is_reposted_by_current_user?: boolean;
   quoted_post?: QuotedPost | null;
 }
 

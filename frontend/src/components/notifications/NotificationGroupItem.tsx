@@ -62,10 +62,8 @@ export default function NotificationGroupItem({
         break;
 
       case "new_post":
-        // Go to first user's latest post
-        if (group.notifications[0]?.related_post_id) {
-          router.push(`/post/${group.notifications[0].related_post_id}`);
-        }
+        // Go to new posts timeline
+        router.push(`/new-posts`);
         break;
     }
   };

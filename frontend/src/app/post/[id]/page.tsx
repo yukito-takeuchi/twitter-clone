@@ -35,6 +35,8 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
 import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
+import QuotedPostCard from "@/components/posts/QuotedPostCard";
+import SharePostDialog from "@/components/posts/SharePostDialog";
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -57,6 +59,7 @@ export default function PostDetailPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Pagination for replies
   const [repliesLoadingMore, setRepliesLoadingMore] = useState(false);
@@ -372,6 +375,13 @@ export default function PostDetailPage() {
           {post.content}
         </Typography>
 
+        {/* Quoted Post */}
+        {post.quoted_post && (
+          <Box sx={{ mb: 2 }}>
+            <QuotedPostCard quotedPost={post.quoted_post} />
+          </Box>
+        )}
+
         {/* Images */}
         {images.length > 0 && (
           <Box
@@ -545,6 +555,10 @@ export default function PostDetailPage() {
           </IconButton>
 
           <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              setShareDialogOpen(true);
+            }}
             sx={{
               color: "text.secondary",
               "&:hover": {
@@ -690,6 +704,13 @@ export default function PostDetailPage() {
             initialContent={post.content}
             onClose={() => setEditDialogOpen(false)}
             onUpdated={handleUpdated}
+          />
+
+          {/* Share Post Dialog */}
+          <SharePostDialog
+            open={shareDialogOpen}
+            onClose={() => setShareDialogOpen(false)}
+            postId={post.id}
           />
         </>
       )}

@@ -42,6 +42,9 @@ export default function NotificationItem({
     if (notification.notification_type === "follow" && notification.related_user_id) {
       const content = notification.content as NotificationContentFollow;
       router.push(`/profile/${content.follower_username}`);
+    } else if (notification.notification_type === "new_post") {
+      // 新しい投稿通知は一覧ページへ
+      router.push(`/new-posts`);
     } else if (notification.related_post_id) {
       router.push(`/post/${notification.related_post_id}`);
     }

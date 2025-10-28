@@ -48,6 +48,7 @@ export interface PostWithStats extends Post {
   retweet_count: number;
   is_liked_by_current_user?: boolean;
   is_bookmarked_by_current_user?: boolean;
+  is_reposted_by_current_user?: boolean;
   quoted_post?: QuotedPost | null;
 }
 
@@ -84,6 +85,12 @@ export class PostModel {
     const result = await query(
       `SELECT
         pws.*,
+        false as is_repost,
+        NULL::uuid as reposted_by_user_id,
+        NULL::varchar as reposted_by_username,
+        NULL::varchar as reposted_by_display_name,
+        NULL::varchar as reposted_by_avatar_url,
+        NULL::timestamp as reposted_at,
         CASE
           WHEN $2::uuid IS NOT NULL THEN EXISTS(
             SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $2
@@ -96,6 +103,12 @@ export class PostModel {
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = pws.id AND user_id = $2
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -143,20 +156,26 @@ export class PostModel {
     currentUserId?: string
   ): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT
-        pws.*,
+      `SELECT DISTINCT ON (user_posts.sort_date, user_posts.id)
+        user_posts.*,
         CASE
           WHEN $4::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $4
+            SELECT 1 FROM likes WHERE post_id = user_posts.id AND user_id = $4
           )
           ELSE false
         END as is_liked_by_current_user,
         CASE
           WHEN $4::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $4
+            SELECT 1 FROM bookmarks WHERE post_id = user_posts.id AND user_id = $4
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = user_posts.id AND user_id = $4
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -167,12 +186,44 @@ export class PostModel {
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
         qp.created_at as quoted_post_created_at
-       FROM posts_with_stats pws
-       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       FROM (
+         -- Original posts by user
+         SELECT
+           pws.*,
+           pws.created_at as sort_date,
+           false as is_repost,
+           NULL::uuid as reposted_by_user_id,
+           NULL::varchar as reposted_by_username,
+           NULL::varchar as reposted_by_display_name,
+           NULL::varchar as reposted_by_avatar_url,
+           NULL::timestamp as reposted_at
+         FROM posts_with_stats pws
+         WHERE pws.user_id = $1
+           AND pws.reply_to_id IS NULL
+           AND pws.repost_of_id IS NULL
+
+         UNION ALL
+
+         -- Reposts by user
+         SELECT
+           p.*,
+           r.created_at as sort_date,
+           true as is_repost,
+           r.user_id as reposted_by_user_id,
+           ru.username as reposted_by_username,
+           ru.display_name as reposted_by_display_name,
+           rp.avatar_url as reposted_by_avatar_url,
+           r.created_at as reposted_at
+         FROM reposts r
+         JOIN posts_with_stats p ON r.post_id = p.id
+         JOIN users ru ON r.user_id = ru.id
+         LEFT JOIN profiles rp ON ru.id = rp.user_id
+         WHERE r.user_id = $1
+       ) as user_posts
+       LEFT JOIN posts qp ON user_posts.quoted_post_id = qp.id AND qp.is_deleted = false
        LEFT JOIN users qu ON qp.user_id = qu.id
        LEFT JOIN profiles qpr ON qu.id = qpr.user_id
-       WHERE pws.user_id = $1 AND pws.reply_to_id IS NULL
-       ORDER BY pws.created_at DESC
+       ORDER BY user_posts.sort_date DESC, user_posts.id
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
     );
@@ -218,6 +269,12 @@ export class PostModel {
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -265,27 +322,66 @@ export class PostModel {
     currentUserId?: string
   ): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT
-        p.*,
+      `SELECT DISTINCT ON (timeline_posts.sort_date, timeline_posts.id)
+        timeline_posts.*,
         CASE
           WHEN $4::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $4
+            SELECT 1 FROM likes WHERE post_id = timeline_posts.id AND user_id = $4
           )
           ELSE false
         END as is_liked_by_current_user,
         CASE
           WHEN $4::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $4
+            SELECT 1 FROM bookmarks WHERE post_id = timeline_posts.id AND user_id = $4
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = timeline_posts.id AND user_id = $4
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count
-       FROM posts_with_stats p
-       WHERE p.user_id IN (
-          SELECT following_id FROM follows WHERE follower_id = $1
-        )
-        AND p.reply_to_id IS NULL
-       ORDER BY p.created_at DESC
+       FROM (
+         -- Original posts by followed users
+         SELECT
+           p.*,
+           p.created_at as sort_date,
+           false as is_repost,
+           NULL::uuid as reposted_by_user_id,
+           NULL::varchar as reposted_by_username,
+           NULL::varchar as reposted_by_display_name,
+           NULL::varchar as reposted_by_avatar_url,
+           NULL::timestamp as reposted_at
+         FROM posts_with_stats p
+         WHERE p.user_id IN (
+            SELECT following_id FROM follows WHERE follower_id = $1
+          )
+          AND p.reply_to_id IS NULL
+          AND p.repost_of_id IS NULL
+
+         UNION ALL
+
+         -- Reposts by followed users
+         SELECT
+           p.*,
+           r.created_at as sort_date,
+           true as is_repost,
+           r.user_id as reposted_by_user_id,
+           ru.username as reposted_by_username,
+           ru.display_name as reposted_by_display_name,
+           rp.avatar_url as reposted_by_avatar_url,
+           r.created_at as reposted_at
+         FROM reposts r
+         JOIN posts_with_stats p ON r.post_id = p.id
+         JOIN users ru ON r.user_id = ru.id
+         LEFT JOIN profiles rp ON ru.id = rp.user_id
+         WHERE r.user_id IN (
+            SELECT following_id FROM follows WHERE follower_id = $1
+          )
+       ) as timeline_posts
+       ORDER BY timeline_posts.sort_date DESC, timeline_posts.id
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
     );
@@ -295,20 +391,26 @@ export class PostModel {
   // Get all posts (public feed, excluding replies)
   static async findAll(limit: number = 20, offset: number = 0, currentUserId?: string): Promise<PostWithStats[]> {
     const result = await query(
-      `SELECT
-        pws.*,
+      `SELECT DISTINCT ON (feed_posts.sort_date, feed_posts.id)
+        feed_posts.*,
         CASE
           WHEN $3::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM likes WHERE post_id = pws.id AND user_id = $3
+            SELECT 1 FROM likes WHERE post_id = feed_posts.id AND user_id = $3
           )
           ELSE false
         END as is_liked_by_current_user,
         CASE
           WHEN $3::uuid IS NOT NULL THEN EXISTS(
-            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $3
+            SELECT 1 FROM bookmarks WHERE post_id = feed_posts.id AND user_id = $3
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $3::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = feed_posts.id AND user_id = $3
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -319,12 +421,42 @@ export class PostModel {
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
         qp.created_at as quoted_post_created_at
-       FROM posts_with_stats pws
-       LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
+       FROM (
+         -- Original posts
+         SELECT
+           pws.*,
+           pws.created_at as sort_date,
+           false as is_repost,
+           NULL::uuid as reposted_by_user_id,
+           NULL::varchar as reposted_by_username,
+           NULL::varchar as reposted_by_display_name,
+           NULL::varchar as reposted_by_avatar_url,
+           NULL::timestamp as reposted_at
+         FROM posts_with_stats pws
+         WHERE pws.reply_to_id IS NULL
+           AND pws.repost_of_id IS NULL
+
+         UNION ALL
+
+         -- Reposts
+         SELECT
+           p.*,
+           r.created_at as sort_date,
+           true as is_repost,
+           r.user_id as reposted_by_user_id,
+           ru.username as reposted_by_username,
+           ru.display_name as reposted_by_display_name,
+           rp.avatar_url as reposted_by_avatar_url,
+           r.created_at as reposted_at
+         FROM reposts r
+         JOIN posts_with_stats p ON r.post_id = p.id
+         JOIN users ru ON r.user_id = ru.id
+         LEFT JOIN profiles rp ON ru.id = rp.user_id
+       ) as feed_posts
+       LEFT JOIN posts qp ON feed_posts.quoted_post_id = qp.id AND qp.is_deleted = false
        LEFT JOIN users qu ON qp.user_id = qu.id
        LEFT JOIN profiles qpr ON qu.id = qpr.user_id
-       WHERE pws.reply_to_id IS NULL
-       ORDER BY pws.created_at DESC
+       ORDER BY feed_posts.sort_date DESC, feed_posts.id
        LIMIT $1 OFFSET $2`,
       [limit, offset, currentUserId || null]
     );
@@ -370,6 +502,12 @@ export class PostModel {
           )
           ELSE false
         END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
         0 as retweet_count
        FROM posts_with_stats pws
        WHERE reply_to_id = $1

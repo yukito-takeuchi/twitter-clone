@@ -15,7 +15,7 @@ import {
   MoreHoriz,
 } from "@mui/icons-material";
 import { PostWithStats } from "@/types";
-import { likeApi, bookmarkApi } from "@/lib/api";
+import { likeApi, bookmarkApi, repostApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -44,6 +44,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     post.is_bookmarked_by_current_user || false
   );
   const [isBookmarking, setIsBookmarking] = useState(false);
+  const [isReposted, setIsReposted] = useState(
+    post.is_reposted_by_current_user || false
+  );
+  const [isReposting, setIsReposting] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
@@ -91,6 +95,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       console.error("Failed to toggle bookmark:", error);
     } finally {
       setIsBookmarking(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (!user || isReposting) return;
+
+    setIsReposting(true);
+    try {
+      if (isReposted) {
+        await repostApi.unrepost(post.id, user.id);
+        setIsReposted(false);
+      } else {
+        await repostApi.repost({ post_id: post.id, user_id: user.id });
+        setIsReposted(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle repost:", error);
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -202,6 +225,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
+      {/* Repost Header */}
+      {post.is_repost && post.reposted_by_username && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 1,
+            ml: 5,
+            color: "text.secondary"
+          }}
+        >
+          <RepeatOutlined sx={{ fontSize: 16 }} />
+          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
+            {post.reposted_by_display_name || post.reposted_by_username}さんがリポスト
+          </Typography>
+        </Box>
+      )}
+
       <Box sx={{ display: "flex", gap: 2 }}>
         {/* Avatar */}
         <Link
@@ -397,12 +439,17 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               </Typography>
             </Box>
 
-            {/* Retweet - Design only */}
+            {/* Repost - Functional */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <IconButton
                 size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRepost();
+                }}
+                disabled={!user || isReposting}
                 sx={{
-                  color: "text.secondary",
+                  color: isReposted ? "#00BA7C" : "text.secondary",
                   "&:hover": {
                     bgcolor: "rgba(0, 186, 124, 0.1)",
                     color: "#00BA7C",
@@ -413,7 +460,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               </IconButton>
               <Typography
                 variant="body2"
-                sx={{ color: "text.secondary", minWidth: "20px" }}
+                sx={{
+                  color: isReposted ? "#00BA7C" : "text.secondary",
+                  minWidth: "20px",
+                }}
               >
                 {post.retweet_count > 0 ? post.retweet_count : ""}
               </Typography>

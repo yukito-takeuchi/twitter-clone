@@ -17,7 +17,7 @@ CREATE TABLE notification_settings (
     enable_reposts BOOLEAN DEFAULT true,
     enable_quotes BOOLEAN DEFAULT true,
     enable_dms BOOLEAN DEFAULT true,
-    enable_new_posts_from_following BOOLEAN DEFAULT false,
+    enable_new_posts_from_following BOOLEAN DEFAULT true,
 
     -- Email notification settings (future use)
     enable_email_notifications BOOLEAN DEFAULT false,

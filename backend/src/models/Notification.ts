@@ -535,6 +535,57 @@ export class NotificationModel {
   }
 
   /**
+   * Create a repost notification
+   */
+  static async createRepostNotification(
+    originalPostOwnerId: string,
+    reposterId: string,
+    postId: string
+  ): Promise<Notification | null> {
+    // Don't notify if reposting own post
+    if (originalPostOwnerId === reposterId) {
+      return null;
+    }
+
+    // Check if notification is enabled
+    const settings = await NotificationSettingsModel.findByUserId(originalPostOwnerId);
+    if (!settings.enable_reposts) {
+      return null;
+    }
+
+    // Get reposter info and post content
+    const result = await query(
+      `SELECT
+        u.username as reposter_username,
+        u.display_name as reposter_display_name,
+        p.content as post_content
+       FROM users u, posts p
+       WHERE u.id = $1 AND p.id = $2`,
+      [reposterId, postId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const { reposter_username, reposter_display_name, post_content } = result.rows[0];
+
+    const content: NotificationContentRepost = {
+      reposter_username,
+      reposter_display_name,
+      post_content: post_content.substring(0, 100),
+    };
+
+    return this.create({
+      user_id: originalPostOwnerId,
+      notification_type: "repost",
+      content,
+      related_user_id: reposterId,
+      related_post_id: postId,
+    });
+  }
+
+  /**
    * Create new post notifications for followers
    */
   static async createNewPostNotifications(

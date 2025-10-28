@@ -18,6 +18,7 @@ import conversationRoutes from "./routes/conversations";
 import messageRoutes from "./routes/messages";
 import notificationRoutes from "./routes/notificationRoutes";
 import bookmarkRoutes from "./routes/bookmarks";
+import repostRoutes from "./routes/reposts";
 
 const app = express();
 const PORT = config.port;
@@ -80,6 +81,7 @@ app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/reposts", repostRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

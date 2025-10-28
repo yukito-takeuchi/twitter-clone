@@ -17,6 +17,7 @@ import imageRoutes from "./routes/images";
 import conversationRoutes from "./routes/conversations";
 import messageRoutes from "./routes/messages";
 import notificationRoutes from "./routes/notificationRoutes";
+import bookmarkRoutes from "./routes/bookmarks";
 
 const app = express();
 const PORT = config.port;
@@ -78,6 +79,7 @@ app.use("/api/images", imageRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

@@ -47,6 +47,7 @@ export interface PostWithStats extends Post {
   reply_count: number;
   retweet_count: number;
   is_liked_by_current_user?: boolean;
+  is_bookmarked_by_current_user?: boolean;
   quoted_post?: QuotedPost | null;
 }
 
@@ -89,6 +90,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $2
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -144,6 +151,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -199,6 +212,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -254,6 +273,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $4
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count
        FROM posts_with_stats p
        WHERE p.user_id IN (
@@ -278,6 +303,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $3::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $3
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count,
         -- Quoted post information
         qp.id as quoted_post_id_info,
@@ -333,6 +364,12 @@ export class PostModel {
           )
           ELSE false
         END as is_liked_by_current_user,
+        CASE
+          WHEN $4::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = pws.id AND user_id = $4
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
         0 as retweet_count
        FROM posts_with_stats pws
        WHERE reply_to_id = $1

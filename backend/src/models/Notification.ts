@@ -64,6 +64,12 @@ export interface NotificationContentRepost {
   post_content: string;
 }
 
+export interface NotificationContentNewPost {
+  poster_username: string;
+  poster_display_name: string;
+  post_content: string;
+}
+
 export class NotificationModel {
   /**
    * Create a new notification
@@ -526,5 +532,66 @@ export class NotificationModel {
       related_user_id: quoterId,
       related_post_id: quotePostId,
     });
+  }
+
+  /**
+   * Create new post notifications for followers
+   */
+  static async createNewPostNotifications(
+    posterId: string,
+    postId: string
+  ): Promise<void> {
+    // Get post info
+    const postResult = await query(
+      `SELECT content FROM posts WHERE id = $1`,
+      [postId]
+    );
+
+    if (postResult.rows.length === 0) {
+      return;
+    }
+
+    const postContent = postResult.rows[0].content;
+
+    // Get poster info
+    const posterResult = await query(
+      `SELECT username, display_name FROM users WHERE id = $1`,
+      [posterId]
+    );
+
+    if (posterResult.rows.length === 0) {
+      return;
+    }
+
+    const { username, display_name } = posterResult.rows[0];
+
+    // Get followers who have this notification enabled
+    const followersResult = await query(
+      `SELECT DISTINCT f.follower_id
+       FROM follows f
+       JOIN notification_settings ns ON f.follower_id = ns.user_id
+       WHERE f.following_id = $1
+       AND ns.enable_new_posts_from_following = true`,
+      [posterId]
+    );
+
+    // Create notifications for each follower
+    const notificationPromises = followersResult.rows.map((row) => {
+      const content: NotificationContentNewPost = {
+        poster_username: username,
+        poster_display_name: display_name,
+        post_content: postContent.substring(0, 100),
+      };
+
+      return this.create({
+        user_id: row.follower_id,
+        notification_type: "new_post",
+        content,
+        related_user_id: posterId,
+        related_post_id: postId,
+      });
+    });
+
+    await Promise.all(notificationPromises);
   }
 }

@@ -83,6 +83,11 @@ export const postController = {
           );
         }
       }
+
+      // New post notification for followers (only for regular posts, not replies/reposts/quotes)
+      if (!reply_to_id && !repost_of_id && !quoted_post_id) {
+        await NotificationModel.createNewPostNotifications(user_id, post.id);
+      }
     } catch (error) {
       console.error("Failed to create post notification:", error);
       // Don't fail the post creation if notification fails

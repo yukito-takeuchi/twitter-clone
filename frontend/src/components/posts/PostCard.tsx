@@ -10,11 +10,12 @@ import {
   Favorite,
   BarChart,
   BookmarkBorder,
+  Bookmark,
   Share,
   MoreHoriz,
 } from "@mui/icons-material";
 import { PostWithStats } from "@/types";
-import { likeApi } from "@/lib/api";
+import { likeApi, bookmarkApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -39,6 +40,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   );
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(
+    post.is_bookmarked_by_current_user || false
+  );
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
@@ -67,6 +72,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       console.error("Failed to toggle like:", error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user || isBookmarking) return;
+
+    setIsBookmarking(true);
+    try {
+      if (isBookmarked) {
+        await bookmarkApi.unbookmark(post.id, user.id);
+        setIsBookmarked(false);
+      } else {
+        await bookmarkApi.bookmark({ post_id: post.id, user_id: user.id });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+    } finally {
+      setIsBookmarking(false);
     }
   };
 
@@ -452,15 +476,24 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <IconButton
                 size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBookmark();
+                }}
+                disabled={!user || isBookmarking}
                 sx={{
-                  color: "text.secondary",
+                  color: isBookmarked ? "#1D9BF0" : "text.secondary",
                   "&:hover": {
                     bgcolor: "rgba(29, 155, 240, 0.1)",
                     color: "#1D9BF0",
                   },
                 }}
               >
-                <BookmarkBorder fontSize="small" />
+                {isBookmarked ? (
+                  <Bookmark fontSize="small" />
+                ) : (
+                  <BookmarkBorder fontSize="small" />
+                )}
               </IconButton>
               <IconButton
                 size="small"

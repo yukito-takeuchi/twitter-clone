@@ -94,6 +94,37 @@ export function useNotifications(userId: string | null) {
     }
   }, []);
 
+  const markMultipleAsRead = useCallback(async (notificationIds: string[]) => {
+    try {
+      // Mark each notification as read in parallel
+      const promises = notificationIds.map((id) =>
+        fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+          method: "PUT",
+        })
+      );
+
+      await Promise.all(promises);
+
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notificationIds.includes(notif.id)
+            ? { ...notif, is_read: true, read_at: new Date().toISOString() }
+            : notif
+        )
+      );
+
+      // Update unread count
+      const unreadCount = notificationIds.filter((id) => {
+        const notif = notifications.find((n) => n.id === id);
+        return notif && !notif.is_read;
+      }).length;
+      setUnreadCount((prev) => Math.max(0, prev - unreadCount));
+    } catch (err) {
+      console.error("Error marking multiple notifications as read:", err);
+    }
+  }, [notifications]);
+
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
 
@@ -218,6 +249,7 @@ export function useNotifications(userId: string | null) {
     error,
     fetchNotifications,
     markAsRead,
+    markMultipleAsRead,
     markAllAsRead,
     deleteNotification,
     fetchNotificationsByType,

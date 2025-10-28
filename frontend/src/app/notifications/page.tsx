@@ -19,6 +19,7 @@ export default function NotificationsPage() {
     loading,
     error,
     markAsRead,
+    markMultipleAsRead,
     markAllAsRead,
     deleteNotification,
   } = useNotifications(user?.id || null);
@@ -160,6 +161,7 @@ export default function NotificationsPage() {
         loading={loading}
         error={error}
         onMarkAsRead={markAsRead}
+        onMarkMultipleAsRead={markMultipleAsRead}
         onDelete={deleteNotification}
       />
     </MainLayout>

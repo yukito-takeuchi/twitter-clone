@@ -98,3 +98,21 @@ export interface NotificationStats {
   unread: number;
   by_type: Record<NotificationType, number>;
 }
+
+export interface GroupedNotification {
+  id: string;
+  notification_type: NotificationType;
+  notifications: Notification[];
+  users: Array<{
+    username: string;
+    display_name: string;
+    avatar_url?: string;
+  }>;
+  related_post_id?: string;
+  post_content?: string;
+  is_read: boolean;
+  created_at: string;
+  count: number;
+}
+
+export type NotificationOrGroup = Notification | GroupedNotification;

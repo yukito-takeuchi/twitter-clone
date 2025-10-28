@@ -438,7 +438,7 @@ export class NotificationModel {
       notification_type: "reply",
       content,
       related_user_id: replierId,
-      related_post_id: replyPostId,
+      related_post_id: originalPostId, // 元の投稿IDを保存してグループ化を可能にする
     });
   }
 
@@ -530,7 +530,7 @@ export class NotificationModel {
       notification_type: "quote",
       content,
       related_user_id: quoterId,
-      related_post_id: quotePostId,
+      related_post_id: originalPostId, // 元の投稿IDを保存してグループ化を可能にする
     });
   }
 

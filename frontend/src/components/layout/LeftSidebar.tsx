@@ -84,8 +84,8 @@ export default function LeftSidebar() {
     {
       icon: <Bookmark fontSize="medium" />,
       label: "ブックマーク",
-      path: "#",
-      active: false,
+      path: "/bookmarks",
+      active: true,
     },
     {
       icon: <Group fontSize="medium" />,

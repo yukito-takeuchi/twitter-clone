@@ -159,6 +159,32 @@ export const likeApi = {
   },
 };
 
+// Bookmark API
+export const bookmarkApi = {
+  bookmark: async (data: { user_id: string; post_id: string }): Promise<void> => {
+    await api.post('/bookmarks', data);
+  },
+
+  unbookmark: async (postId: string, userId: string): Promise<void> => {
+    await api.delete(`/bookmarks/${userId}/${postId}`);
+  },
+
+  checkIfBookmarked: async (userId: string, postId: string): Promise<boolean> => {
+    const response = await api.get<ApiResponse<{ has_bookmarked: boolean }>>(
+      `/bookmarks/check/${userId}/${postId}`
+    );
+    return response.data.data!.has_bookmarked;
+  },
+
+  getBookmarkedPosts: async (userId: string, limit = 20, offset = 0): Promise<PostWithStats[]> => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    const response = await api.get<ApiResponse<{ posts: PostWithStats[]; total_bookmarks: number }>>(
+      `/bookmarks/user/${userId}?${params.toString()}`
+    );
+    return response.data.data!.posts;
+  },
+};
+
 // Follow API
 export const followApi = {
   follow: async (followerId: string, followingId: string): Promise<void> => {

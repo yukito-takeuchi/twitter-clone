@@ -128,16 +128,21 @@ function canGroupNotifications(a: Notification, b: Notification): boolean {
     return false;
   }
 
-  // Different users (don't group notifications from same user)
-  if (a.related_user_id === b.related_user_id) {
-    console.log("    [canGroupNotifications] ✗ Same user (shouldn't group same user)");
-    return false;
-  }
-
   switch (a.notification_type) {
+    case "dm":
+      // DM: Group messages from the same user
+      const canGroupByUser = a.related_user_id === b.related_user_id && !!a.related_user_id;
+      console.log(`    [canGroupNotifications] ${canGroupByUser ? "✓" : "✗"} User-based grouping (DM): ${a.related_user_id} === ${b.related_user_id}`);
+      return canGroupByUser;
+
     case "like":
     case "reply":
     case "quote":
+      // Different users (don't group notifications from same user)
+      if (a.related_user_id === b.related_user_id) {
+        console.log("    [canGroupNotifications] ✗ Same user (shouldn't group same user)");
+        return false;
+      }
       // Group if same post
       const canGroupByPost = a.related_post_id === b.related_post_id && !!a.related_post_id;
       console.log(`    [canGroupNotifications] ${canGroupByPost ? "✓" : "✗"} Post-based grouping (${a.notification_type}): ${a.related_post_id} === ${b.related_post_id}`);
@@ -145,6 +150,11 @@ function canGroupNotifications(a: Notification, b: Notification): boolean {
 
     case "follow":
     case "new_post":
+      // Different users (don't group notifications from same user)
+      if (a.related_user_id === b.related_user_id) {
+        console.log("    [canGroupNotifications] ✗ Same user (shouldn't group same user)");
+        return false;
+      }
       // Group all follows / new posts within time window
       console.log(`    [canGroupNotifications] ✓ Time-based grouping (${a.notification_type})`);
       return true;
@@ -177,6 +187,10 @@ function createGroupedNotification(
     let display_name = "";
 
     switch (type) {
+      case "dm":
+        username = content.sender_username;
+        display_name = content.sender_display_name;
+        break;
       case "like":
         username = content.liker_username;
         display_name = content.liker_display_name;
@@ -206,7 +220,9 @@ function createGroupedNotification(
   let post_content: string | undefined;
   const firstContent = first.content as any;
 
-  if (type === "like" && firstContent.post_content) {
+  if (type === "dm" && firstContent.message_preview) {
+    post_content = firstContent.message_preview;
+  } else if (type === "like" && firstContent.post_content) {
     post_content = firstContent.post_content;
   } else if (type === "reply" && firstContent.original_post_content) {
     post_content = firstContent.original_post_content;

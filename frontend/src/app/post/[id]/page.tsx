@@ -21,10 +21,12 @@ import {
   Share,
   BarChart,
   MoreHoriz,
+  BookmarkBorder,
+  Bookmark,
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
-import { postApi, likeApi } from "@/lib/api";
+import { postApi, likeApi, bookmarkApi } from "@/lib/api";
 import type { PostWithStats } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -49,6 +51,8 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [replyContent, setReplyContent] = useState("");
@@ -81,6 +85,12 @@ export default function PostDetailPage() {
       setPost(postData);
       setIsLiked(postData.is_liked_by_current_user || false);
       setLikeCount(postData.like_count || 0);
+
+      // Check bookmark status
+      if (user) {
+        const bookmarked = await bookmarkApi.checkIfBookmarked(user.id, postId);
+        setIsBookmarked(bookmarked);
+      }
     } catch (error) {
       console.error("Failed to fetch post:", error);
     } finally {
@@ -164,6 +174,25 @@ export default function PostDetailPage() {
       console.error("Failed to toggle like:", error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user || !post || isBookmarking) return;
+
+    setIsBookmarking(true);
+    try {
+      if (isBookmarked) {
+        await bookmarkApi.unbookmark(post.id, user.id);
+        setIsBookmarked(false);
+      } else {
+        await bookmarkApi.bookmark({ user_id: user.id, post_id: post.id });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+    } finally {
+      setIsBookmarking(false);
     }
   };
 
@@ -540,6 +569,20 @@ export default function PostDetailPage() {
             }}
           >
             {isLiked ? <Favorite /> : <FavoriteBorder />}
+          </IconButton>
+
+          <IconButton
+            onClick={handleBookmark}
+            disabled={!user || isBookmarking}
+            sx={{
+              color: isBookmarked ? "#1D9BF0" : "text.secondary",
+              "&:hover": {
+                bgcolor: "rgba(29, 155, 240, 0.1)",
+                color: "#1D9BF0",
+              },
+            }}
+          >
+            {isBookmarked ? <Bookmark /> : <BookmarkBorder />}
           </IconButton>
 
           <IconButton

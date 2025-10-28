@@ -30,11 +30,19 @@ export const repostController = {
 
     const repost = await RepostModel.create({ user_id, post_id });
 
-    // Create repost notification
+    // Create repost notification for the original poster
     try {
       await NotificationModel.createRepostNotification(post.user_id, user_id, post_id);
     } catch (error) {
       console.error("Failed to create repost notification:", error);
+      // Don't fail the repost operation if notification fails
+    }
+
+    // Create new post notifications for the reposter's followers
+    try {
+      await NotificationModel.createNewPostNotifications(user_id, post_id);
+    } catch (error) {
+      console.error("Failed to create new post notifications for followers:", error);
       // Don't fail the repost operation if notification fails
     }
 

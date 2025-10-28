@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PostModel } from "../models/Post";
 import { UserModel } from "../models/User";
+import { NotificationModel } from "../models/Notification";
 import { AppError, asyncHandler } from "../middlewares/errorHandler";
 
 export const postController = {
@@ -54,6 +55,38 @@ export const postController = {
       repost_of_id,
       quoted_post_id,
     });
+
+    // Create notifications
+    try {
+      // Reply notification
+      if (reply_to_id) {
+        const parentPost = await PostModel.findById(reply_to_id);
+        if (parentPost) {
+          await NotificationModel.createReplyNotification(
+            parentPost.user_id,
+            user_id,
+            post.id,
+            reply_to_id
+          );
+        }
+      }
+
+      // Quote notification
+      if (quoted_post_id) {
+        const quotedPost = await PostModel.findById(quoted_post_id);
+        if (quotedPost) {
+          await NotificationModel.createQuoteNotification(
+            quotedPost.user_id,
+            user_id,
+            post.id,
+            quoted_post_id
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to create post notification:", error);
+      // Don't fail the post creation if notification fails
+    }
 
     res.status(201).json({
       status: "success",

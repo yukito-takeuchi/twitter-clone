@@ -16,6 +16,7 @@ import followRoutes from "./routes/follows";
 import imageRoutes from "./routes/images";
 import conversationRoutes from "./routes/conversations";
 import messageRoutes from "./routes/messages";
+import notificationRoutes from "./routes/notificationRoutes";
 
 const app = express();
 const PORT = config.port;
@@ -76,6 +77,7 @@ app.use("/api/follows", followRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

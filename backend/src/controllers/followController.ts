@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { FollowModel } from "../models/Follow";
 import { UserModel } from "../models/User";
+import { NotificationModel } from "../models/Notification";
 import { AppError, asyncHandler } from "../middlewares/errorHandler";
 
 export const followController = {
@@ -31,6 +32,14 @@ export const followController = {
     }
 
     const follow = await FollowModel.create({ follower_id, following_id });
+
+    // Create follow notification
+    try {
+      await NotificationModel.createFollowNotification(following_id, follower_id);
+    } catch (error) {
+      console.error("Failed to create follow notification:", error);
+      // Don't fail the follow operation if notification fails
+    }
 
     res.status(201).json({
       status: "success",

@@ -333,11 +333,6 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             {post.content}
           </Typography>
 
-          {/* Quoted Post */}
-          {post.quoted_post && (
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          )}
-
           {/* Images */}
           {images.length > 0 && (
             <Box
@@ -406,6 +401,11 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 </Box>
               ))}
             </Box>
+          )}
+
+          {/* Quoted Post */}
+          {post.quoted_post && (
+            <QuotedPostCard quotedPost={post.quoted_post} />
           )}
 
           {/* Action Buttons */}

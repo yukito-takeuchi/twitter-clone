@@ -50,7 +50,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
 
   // Parse image_url - could be a single URL or comma-separated URLs
   const images = quotedPost.image_url
-    ? quotedPost.image_url.split(",").map((url) => url.trim())
+    ? quotedPost.image_url.split(",").map((url) => url.trim()).filter((url) => url.length > 0)
     : [];
 
   return (

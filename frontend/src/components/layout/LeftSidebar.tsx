@@ -44,7 +44,8 @@ export default function LeftSidebar() {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(menuAnchorEl);
   const { unreadCount } = useNotifications(user?.id || null);
-  const [moreDialogOpen, setMoreDialogOpen] = useState(false);
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const moreDialogOpen = Boolean(moreMenuAnchorEl);
 
   const navItems = [
     {
@@ -186,10 +187,10 @@ export default function LeftSidebar() {
               sx={{ mb: { xs: 0, sm: 0.125, md: 0.25 } }}
             >
               <ListItemButton
-                onClick={() => {
+                onClick={(e) => {
                   if (!item.active) return;
                   if (item.label === "もっと見る") {
-                    setMoreDialogOpen(true);
+                    setMoreMenuAnchorEl(e.currentTarget);
                   } else {
                     router.push(item.path);
                   }
@@ -382,10 +383,11 @@ export default function LeftSidebar() {
         </>
       )}
 
-      {/* More Menu Dialog */}
+      {/* More Menu Popover */}
       <MoreMenuDialog
         open={moreDialogOpen}
-        onClose={() => setMoreDialogOpen(false)}
+        onClose={() => setMoreMenuAnchorEl(null)}
+        anchorEl={moreMenuAnchorEl}
       />
     </Box>
   );

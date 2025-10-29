@@ -8,7 +8,7 @@ const router = Router();
 router.post("/", likeController.likePost);
 
 // Unlike a post
-router.delete("/:userId/:postId", likeController.unlikePost);
+router.delete("/:postId/:userId", likeController.unlikePost);
 
 // Get users who liked a post
 router.get("/post/:postId", validatePagination, likeController.getUsersWhoLiked);

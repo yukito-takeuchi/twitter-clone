@@ -148,7 +148,7 @@ export const likeApi = {
   },
 
   unlike: async (postId: string, userId: string): Promise<void> => {
-    await api.delete(`/likes/${userId}/${postId}`);
+    await api.delete(`/likes/${postId}/${userId}`);
   },
 
   checkIfLiked: async (userId: string, postId: string): Promise<boolean> => {

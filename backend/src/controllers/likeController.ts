@@ -46,7 +46,7 @@ export const likeController = {
 
   // Unlike a post
   unlikePost: asyncHandler(async (req: Request, res: Response) => {
-    const { userId, postId } = req.params;
+    const { postId, userId } = req.params;
 
     // Check if user exists
     const user = await UserModel.findById(userId);

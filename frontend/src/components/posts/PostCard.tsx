@@ -26,6 +26,8 @@ import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
 import SharePostDialog from "@/components/posts/SharePostDialog";
 import QuotedPostCard from "@/components/posts/QuotedPostCard";
+import AnimatedCounter from "@/components/common/AnimatedCounter";
+import { useRealtimeLikeCount } from "@/hooks/useRealtimeLikeCount";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -40,6 +42,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   );
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+
+  // Real-time like count with animation
+  const { likeCount: realtimeLikeCount } = useRealtimeLikeCount({
+    postId: post.id,
+    userId: user?.id || null,
+    initialLikeCount: likeCount,
+    pollingInterval: 5000,
+    enabled: true,
+  });
   const [isBookmarked, setIsBookmarked] = useState(
     post.is_bookmarked_by_current_user || false
   );
@@ -496,7 +507,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   minWidth: "20px",
                 }}
               >
-                {likeCount > 0 ? likeCount : ""}
+                {realtimeLikeCount > 0 ? (
+                  <AnimatedCounter
+                    value={realtimeLikeCount}
+                    color={isLiked ? "#F91880" : undefined}
+                    duration={300}
+                  />
+                ) : (
+                  ""
+                )}
               </Typography>
             </Box>
 

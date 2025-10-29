@@ -70,21 +70,32 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const handleLike = async () => {
     if (!user || isLiking) return;
 
+    // Save current state for rollback
+    const previousIsLiked = isLiked;
+    const previousLikeCount = likeCount;
+
     setIsLiking(true);
+
+    // Optimistic update
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => Math.max(0, prev - 1));
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+
     try {
-      if (isLiked) {
+      if (previousIsLiked) {
         await likeApi.unlike(post.id, user.id);
-        setIsLiked(false);
-        setLikeCount((prev) => prev - 1);
       } else {
         await likeApi.like({ post_id: post.id, user_id: user.id });
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
       }
-      // いいね時はリロード不要（ローカルステートで更新済み）
-      // onUpdate?.();
     } catch (error) {
       console.error("Failed to toggle like:", error);
+      // Rollback on error
+      setIsLiked(previousIsLiked);
+      setLikeCount(previousLikeCount);
     } finally {
       setIsLiking(false);
     }

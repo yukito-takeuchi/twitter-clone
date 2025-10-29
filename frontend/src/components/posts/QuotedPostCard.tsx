@@ -100,6 +100,11 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
           wordBreak: 'break-word',
           fontSize: '14px',
           mb: images.length > 0 ? 1 : 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 5,
+          WebkitBoxOrient: 'vertical',
         }}
       >
         {quotedPost.content}

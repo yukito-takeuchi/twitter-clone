@@ -131,7 +131,12 @@ export class PostModel {
     if (!row) return null;
 
     // Format quoted post if exists
-    const post: PostWithStats = { ...row };
+    const post: PostWithStats = {
+      ...row,
+      // Ensure like_count and reply_count are numbers
+      like_count: parseInt(row.like_count) || 0,
+      reply_count: parseInt(row.reply_count) || 0,
+    };
     if (row.quoted_post_id_info) {
       post.quoted_post = {
         id: row.quoted_post_id_info,
@@ -230,7 +235,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,
@@ -297,7 +307,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,
@@ -400,7 +415,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,
@@ -492,7 +512,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,

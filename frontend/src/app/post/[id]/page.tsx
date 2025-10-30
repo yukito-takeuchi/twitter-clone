@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
-import { postApi, likeApi, bookmarkApi } from "@/lib/api";
+import { postApi, likeApi, bookmarkApi, repostApi } from "@/lib/api";
 import type { PostWithStats } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -53,6 +53,8 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
+  const [isReposting, setIsReposting] = useState(false);
 
   // Real-time like count with animation
   const { likeCount: realtimeLikeCount } = useRealtimeLikeCount({
@@ -96,6 +98,7 @@ export default function PostDetailPage() {
       setPost(postData);
       setIsLiked(postData.is_liked_by_current_user || false);
       setLikeCount(postData.like_count || 0);
+      setIsReposted(postData.is_reposted_by_current_user || false);
 
       // Check bookmark status
       if (user) {
@@ -217,6 +220,25 @@ export default function PostDetailPage() {
       console.error("Failed to toggle bookmark:", error);
     } finally {
       setIsBookmarking(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (!user || !post || isReposting) return;
+
+    setIsReposting(true);
+    try {
+      if (isReposted) {
+        await repostApi.unrepost(post.id, user.id);
+        setIsReposted(false);
+      } else {
+        await repostApi.repost({ user_id: user.id, post_id: post.id });
+        setIsReposted(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle repost:", error);
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -576,8 +598,10 @@ export default function PostDetailPage() {
           </IconButton>
 
           <IconButton
+            onClick={handleRepost}
+            disabled={!user || isReposting}
             sx={{
-              color: "text.secondary",
+              color: isReposted ? "#00BA7C" : "text.secondary",
               "&:hover": {
                 bgcolor: "rgba(0, 186, 124, 0.1)",
                 color: "#00BA7C",

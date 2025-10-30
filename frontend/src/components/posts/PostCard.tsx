@@ -48,7 +48,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     postId: post.id,
     userId: user?.id || null,
     initialLikeCount: likeCount,
-    pollingInterval: 5000,
+    pollingInterval: 20000,
     enabled: true,
   });
   const [isBookmarked, setIsBookmarked] = useState(
@@ -256,12 +256,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             gap: 1,
             mb: 1,
             ml: 5,
-            color: "text.secondary"
+            color: "text.secondary",
           }}
         >
           <RepeatOutlined sx={{ fontSize: 16 }} />
-          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
-            {post.reposted_by_display_name || post.reposted_by_username}さんがリポスト
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontSize: "0.875rem" }}
+          >
+            {post.reposted_by_display_name || post.reposted_by_username}
+            さんがリポスト
           </Typography>
         </Box>
       )}
@@ -426,9 +430,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           )}
 
           {/* Quoted Post */}
-          {post.quoted_post && (
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          )}
+          {post.quoted_post && <QuotedPostCard quotedPost={post.quoted_post} />}
 
           {/* Action Buttons */}
           <Box

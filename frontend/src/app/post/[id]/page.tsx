@@ -59,7 +59,7 @@ export default function PostDetailPage() {
     postId: postId,
     userId: user?.id || null,
     initialLikeCount: likeCount,
-    pollingInterval: 5000,
+    pollingInterval: 20000,
     enabled: !!post,
   });
   const [isBookmarked, setIsBookmarked] = useState(false);

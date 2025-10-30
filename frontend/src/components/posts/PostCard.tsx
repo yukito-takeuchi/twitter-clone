@@ -91,11 +91,20 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       } else {
         await likeApi.like({ post_id: post.id, user_id: user.id });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to toggle like:", error);
-      // Rollback on error
-      setIsLiked(previousIsLiked);
-      setLikeCount(previousLikeCount);
+      const status = error?.response?.status;
+      // If server says already liked (409) while we tried to like,
+      // or already unliked (404) while we tried to unlike, keep optimistic state.
+      if (!previousIsLiked && status === 409) {
+        // Already liked on server; keep isLiked=true and incremented count
+      } else if (previousIsLiked && status === 404) {
+        // Already unliked on server; keep isLiked=false and decremented count
+      } else {
+        // Other errors: rollback
+        setIsLiked(previousIsLiked);
+        setLikeCount(previousLikeCount);
+      }
     } finally {
       setIsLiking(false);
     }

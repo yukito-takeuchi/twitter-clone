@@ -223,19 +223,15 @@ export default function PostDetailPage() {
   const formatTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      const now = new Date();
-      const diffInDays =
-        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+      const hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const period = hours < 12 ? "午前" : "午後";
+      const hour12 = ((hours + 11) % 12) + 1; // 0を12に
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
 
-      if (diffInDays < 3) {
-        return formatDistanceToNow(date, { addSuffix: true, locale: ja });
-      }
-
-      // X と同様に 3日以上は「M月d日」表記
-      return new Intl.DateTimeFormat("ja-JP", {
-        month: "numeric",
-        day: "numeric",
-      }).format(date);
+      return `${period}${hour12}:${minutes} · ${year}年${month}月${day}日`;
     } catch {
       return "";
     }

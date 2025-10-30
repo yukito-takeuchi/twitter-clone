@@ -143,18 +143,17 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     try {
       const date = new Date(dateString);
       const now = new Date();
-      const diffInDays =
-        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-      if (diffInDays < 3) {
+      if (diffInHours < 24) {
         return formatDistanceToNow(date, { addSuffix: true, locale: ja });
       }
 
-      // X と同様に 3日以上は「M月d日」表記
-      return new Intl.DateTimeFormat("ja-JP", {
-        month: "numeric",
+      // 24時間以上は「10月20日」表記
+      return date.toLocaleDateString("ja-JP", {
+        month: "long",
         day: "numeric",
-      }).format(date);
+      });
     } catch {
       return "";
     }

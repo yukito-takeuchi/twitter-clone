@@ -141,10 +141,20 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), {
-        addSuffix: true,
-        locale: ja,
-      });
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays =
+        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (diffInDays < 3) {
+        return formatDistanceToNow(date, { addSuffix: true, locale: ja });
+      }
+
+      // X と同様に 3日以上は「M月d日」表記
+      return new Intl.DateTimeFormat("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+      }).format(date);
     } catch {
       return "";
     }

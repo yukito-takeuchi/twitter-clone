@@ -221,14 +221,24 @@ export default function PostDetailPage() {
   };
 
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("ja-JP", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays =
+        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (diffInDays < 3) {
+        return formatDistanceToNow(date, { addSuffix: true, locale: ja });
+      }
+
+      // X と同様に 3日以上は「M月d日」表記
+      return new Intl.DateTimeFormat("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+      }).format(date);
+    } catch {
+      return "";
+    }
   };
 
   const handleImageClick = (index: number) => {
@@ -531,10 +541,7 @@ export default function PostDetailPage() {
           </Box>
           <Box sx={{ display: "flex", gap: 0.5 }}>
             <Box sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-              <AnimatedCounter
-                value={realtimeLikeCount}
-                duration={300}
-              />
+              <AnimatedCounter value={realtimeLikeCount} duration={300} />
             </Box>
             <Typography variant="body1" sx={{ color: "text.secondary" }}>
               いいね

@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Box, Avatar, Typography } from '@mui/material';
 import { QuotedPost } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
+import ImageModal from '@/components/common/ImageModal';
 
 interface QuotedPostCardProps {
   quotedPost: QuotedPost;
@@ -12,6 +14,8 @@ interface QuotedPostCardProps {
 
 export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
   const router = useRouter();
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const formatTime = (dateString: string) => {
     try {
@@ -36,6 +40,18 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
     e.stopPropagation();
     router.push(`/post/${quotedPost.id}`);
   };
+
+  const handleImageClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    setSelectedImageIndex(index);
+    setImageModalOpen(true);
+  };
+
+  // Parse image_url - could be a single URL or comma-separated URLs
+  const images = quotedPost.image_url
+    ? quotedPost.image_url.split(",").map((url) => url.trim()).filter((url) => url.length > 0)
+    : [];
 
   return (
     <Box
@@ -83,28 +99,87 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           fontSize: '14px',
-          mb: quotedPost.image_url ? 1 : 0,
+          mb: images.length > 0 ? 1 : 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 5,
+          WebkitBoxOrient: 'vertical',
         }}
       >
         {quotedPost.content}
       </Typography>
 
-      {/* Image */}
-      {quotedPost.image_url && (
+      {/* Images */}
+      {images.length > 0 && (
         <Box
-          component="img"
-          src={getImageUrl(quotedPost.image_url)}
-          alt="Quoted post image"
           sx={{
-            width: '100%',
-            maxHeight: 200,
-            objectFit: 'cover',
+            display: "grid",
+            gridTemplateColumns:
+              images.length === 1
+                ? "1fr"
+                : images.length === 2
+                ? "1fr 1fr"
+                : images.length === 3
+                ? "2fr 1fr"
+                : "1fr 1fr",
+            gridTemplateRows:
+              images.length === 3
+                ? "1fr 1fr"
+                : images.length === 4
+                ? "1fr 1fr"
+                : "auto",
+            gap: 0.5,
             borderRadius: 2,
-            border: 1,
-            borderColor: 'divider',
+            overflow: "hidden",
+            border: "1px solid",
+            borderColor: "divider",
+            height: images.length === 1 ? "auto" : "200px",
+            maxHeight: images.length === 1 ? "280px" : "200px",
+            width: "100%",
           }}
-        />
+        >
+          {images.map((image, index) => (
+            <Box
+              key={index}
+              onClick={(e) => handleImageClick(e, index)}
+              sx={{
+                position: "relative",
+                height: images.length === 1 ? "auto" : "100%",
+                bgcolor: "action.hover",
+                overflow: "hidden",
+                cursor: "pointer",
+                ...(images.length === 3 &&
+                  index === 0 && {
+                    gridRow: "1 / 3",
+                  }),
+                "&:hover": {
+                  opacity: 0.9,
+                },
+              }}
+            >
+              <Box
+                component="img"
+                src={getImageUrl(image)}
+                alt={`Quoted post image ${index + 1}`}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: images.length === 1 ? "contain" : "cover",
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
       )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={imageModalOpen}
+        images={images.map(getImageUrl)}
+        initialIndex={selectedImageIndex}
+        onClose={() => setImageModalOpen(false)}
+      />
     </Box>
   );
 }

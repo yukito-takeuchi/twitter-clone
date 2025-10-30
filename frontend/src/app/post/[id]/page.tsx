@@ -39,6 +39,8 @@ import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
 import QuotedPostCard from "@/components/posts/QuotedPostCard";
 import SharePostDialog from "@/components/posts/SharePostDialog";
+import AnimatedCounter from "@/components/common/AnimatedCounter";
+import { useRealtimeLikeCount } from "@/hooks/useRealtimeLikeCount";
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -51,6 +53,15 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
+
+  // Real-time like count with animation
+  const { likeCount: realtimeLikeCount } = useRealtimeLikeCount({
+    postId: postId,
+    userId: user?.id || null,
+    initialLikeCount: likeCount,
+    pollingInterval: 5000,
+    enabled: !!post,
+  });
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -159,19 +170,32 @@ export default function PostDetailPage() {
   const handleLike = async () => {
     if (!user || !post || isLiking) return;
 
+    // Save current state for rollback
+    const previousIsLiked = isLiked;
+    const previousLikeCount = likeCount;
+
     setIsLiking(true);
+
+    // Optimistic update
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => Math.max(0, prev - 1));
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+
     try {
-      if (isLiked) {
+      if (previousIsLiked) {
         await likeApi.unlike(post.id, user.id);
-        setIsLiked(false);
-        setLikeCount((prev) => prev - 1);
       } else {
         await likeApi.like({ user_id: user.id, post_id: post.id });
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
       }
     } catch (error) {
       console.error("Failed to toggle like:", error);
+      // Rollback on error
+      setIsLiked(previousIsLiked);
+      setLikeCount(previousLikeCount);
     } finally {
       setIsLiking(false);
     }
@@ -506,9 +530,12 @@ export default function PostDetailPage() {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", gap: 0.5 }}>
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {likeCount}
-            </Typography>
+            <Box sx={{ fontWeight: "bold", fontSize: "1rem" }}>
+              <AnimatedCounter
+                value={realtimeLikeCount}
+                duration={300}
+              />
+            </Box>
             <Typography variant="body1" sx={{ color: "text.secondary" }}>
               いいね
             </Typography>

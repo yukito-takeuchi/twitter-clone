@@ -46,6 +46,7 @@ export default function SharePostDialog({
           maxWidth: 400,
         },
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <DialogContent sx={{ p: 0 }}>
         {copySuccess ? (

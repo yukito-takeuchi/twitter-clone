@@ -32,6 +32,7 @@ export default function ImageModal({ images, initialIndex = 0, open, onClose }: 
   };
 
   const getImageUrl = (url: string) => {
+    if (!url) return '';
     if (url.startsWith('http')) {
       return url;
     }

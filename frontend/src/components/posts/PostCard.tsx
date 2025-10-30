@@ -26,6 +26,8 @@ import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
 import SharePostDialog from "@/components/posts/SharePostDialog";
 import QuotedPostCard from "@/components/posts/QuotedPostCard";
+import AnimatedCounter from "@/components/common/AnimatedCounter";
+import { useRealtimeLikeCount } from "@/hooks/useRealtimeLikeCount";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -40,6 +42,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   );
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+
+  // Real-time like count with animation
+  const { likeCount: realtimeLikeCount } = useRealtimeLikeCount({
+    postId: post.id,
+    userId: user?.id || null,
+    initialLikeCount: likeCount,
+    pollingInterval: 5000,
+    enabled: true,
+  });
   const [isBookmarked, setIsBookmarked] = useState(
     post.is_bookmarked_by_current_user || false
   );
@@ -59,21 +70,32 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const handleLike = async () => {
     if (!user || isLiking) return;
 
+    // Save current state for rollback
+    const previousIsLiked = isLiked;
+    const previousLikeCount = likeCount;
+
     setIsLiking(true);
+
+    // Optimistic update
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => Math.max(0, prev - 1));
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+
     try {
-      if (isLiked) {
+      if (previousIsLiked) {
         await likeApi.unlike(post.id, user.id);
-        setIsLiked(false);
-        setLikeCount((prev) => prev - 1);
       } else {
         await likeApi.like({ post_id: post.id, user_id: user.id });
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
       }
-      // いいね時はリロード不要（ローカルステートで更新済み）
-      // onUpdate?.();
     } catch (error) {
       console.error("Failed to toggle like:", error);
+      // Rollback on error
+      setIsLiked(previousIsLiked);
+      setLikeCount(previousLikeCount);
     } finally {
       setIsLiking(false);
     }
@@ -333,11 +355,6 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             {post.content}
           </Typography>
 
-          {/* Quoted Post */}
-          {post.quoted_post && (
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          )}
-
           {/* Images */}
           {images.length > 0 && (
             <Box
@@ -406,6 +423,11 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 </Box>
               ))}
             </Box>
+          )}
+
+          {/* Quoted Post */}
+          {post.quoted_post && (
+            <QuotedPostCard quotedPost={post.quoted_post} />
           )}
 
           {/* Action Buttons */}
@@ -496,7 +518,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   minWidth: "20px",
                 }}
               >
-                {likeCount > 0 ? likeCount : ""}
+                {realtimeLikeCount > 0 ? (
+                  <AnimatedCounter
+                    value={realtimeLikeCount}
+                    color={isLiked ? "#F91880" : undefined}
+                    duration={300}
+                  />
+                ) : (
+                  ""
+                )}
               </Typography>
             </Box>
 

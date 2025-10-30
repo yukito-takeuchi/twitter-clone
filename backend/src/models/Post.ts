@@ -131,7 +131,12 @@ export class PostModel {
     if (!row) return null;
 
     // Format quoted post if exists
-    const post: PostWithStats = { ...row };
+    const post: PostWithStats = {
+      ...row,
+      // Ensure like_count and reply_count are numbers
+      like_count: parseInt(row.like_count) || 0,
+      reply_count: parseInt(row.reply_count) || 0,
+    };
     if (row.quoted_post_id_info) {
       post.quoted_post = {
         id: row.quoted_post_id_info,
@@ -230,7 +235,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,
@@ -297,7 +307,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,
@@ -342,7 +357,16 @@ export class PostModel {
           )
           ELSE false
         END as is_reposted_by_current_user,
-        0 as retweet_count
+        0 as retweet_count,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
        FROM (
          -- Original posts by followed users
          SELECT
@@ -381,11 +405,36 @@ export class PostModel {
             SELECT following_id FROM follows WHERE follower_id = $1
           )
        ) as timeline_posts
+       LEFT JOIN posts qp ON timeline_posts.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
        ORDER BY timeline_posts.sort_date DESC, timeline_posts.id
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset, currentUserId || null]
     );
-    return result.rows;
+
+    // Format quoted posts
+    return result.rows.map((row) => {
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
+      if (row.quoted_post_id_info) {
+        post.quoted_post = {
+          id: row.quoted_post_id_info,
+          user_id: row.quoted_post_user_id,
+          username: row.quoted_post_username,
+          display_name: row.quoted_post_display_name,
+          avatar_url: row.quoted_post_avatar_url,
+          content: row.quoted_post_content,
+          image_url: row.quoted_post_image_url,
+          created_at: row.quoted_post_created_at,
+        };
+      }
+      return post;
+    });
   }
 
   // Get all posts (public feed, excluding replies)
@@ -463,7 +512,12 @@ export class PostModel {
 
     // Format quoted posts
     return result.rows.map((row) => {
-      const post: PostWithStats = { ...row };
+      const post: PostWithStats = {
+        ...row,
+        // Ensure like_count and reply_count are numbers
+        like_count: parseInt(row.like_count) || 0,
+        reply_count: parseInt(row.reply_count) || 0,
+      };
       if (row.quoted_post_id_info) {
         post.quoted_post = {
           id: row.quoted_post_id_info,

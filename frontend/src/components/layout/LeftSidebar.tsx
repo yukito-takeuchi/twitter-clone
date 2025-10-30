@@ -36,6 +36,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
+import MoreMenuDialog from "./MoreMenuDialog";
 
 export default function LeftSidebar() {
   const { user, logout } = useAuth();
@@ -43,6 +44,8 @@ export default function LeftSidebar() {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(menuAnchorEl);
   const { unreadCount } = useNotifications(user?.id || null);
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const moreDialogOpen = Boolean(moreMenuAnchorEl);
 
   const navItems = [
     {
@@ -109,7 +112,7 @@ export default function LeftSidebar() {
       icon: <MoreHoriz fontSize="medium" />,
       label: "もっと見る",
       path: "#",
-      active: false,
+      active: true,
     },
   ];
 
@@ -184,7 +187,14 @@ export default function LeftSidebar() {
               sx={{ mb: { xs: 0, sm: 0.125, md: 0.25 } }}
             >
               <ListItemButton
-                onClick={() => item.active && router.push(item.path)}
+                onClick={(e) => {
+                  if (!item.active) return;
+                  if (item.label === "もっと見る") {
+                    setMoreMenuAnchorEl(e.currentTarget);
+                  } else {
+                    router.push(item.path);
+                  }
+                }}
                 disabled={!item.active}
                 sx={{
                   borderRadius: "9999px",
@@ -372,6 +382,13 @@ export default function LeftSidebar() {
           </Menu>
         </>
       )}
+
+      {/* More Menu Popover */}
+      <MoreMenuDialog
+        open={moreDialogOpen}
+        onClose={() => setMoreMenuAnchorEl(null)}
+        anchorEl={moreMenuAnchorEl}
+      />
     </Box>
   );
 }

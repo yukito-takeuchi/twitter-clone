@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -22,7 +22,21 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  // Initialize from localStorage or default to dark
+  const [mode, setMode] = useState<ThemeMode>(() => {
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('theme-mode') as ThemeMode | null;
+      return savedMode || 'dark';
+    }
+    return 'dark';
+  });
+
+  // Save to localStorage whenever mode changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme-mode', mode);
+    }
+  }, [mode]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));

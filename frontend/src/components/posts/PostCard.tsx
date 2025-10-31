@@ -69,6 +69,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(post.is_pinned || false);
   const [isPinning, setIsPinning] = useState(false);
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -289,6 +290,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   // Show pin option if user owns the post OR owns the repost
   const showPinOption = isOwnPost || isOwnRepost;
 
+  // Check if content has more than 15 lines
+  const contentLines = post.content?.split('\n') || [];
+  const hasLongContent = contentLines.length > 15;
+
+  // Display content (truncated or full)
+  const displayContent = hasLongContent && !isTextExpanded
+    ? contentLines.slice(0, 15).join('\n')
+    : post.content;
+
   return (
     <Paper
       elevation={0}
@@ -426,17 +436,40 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </Box>
 
           {/* Post Content */}
-          <Typography
-            variant="body1"
-            sx={{
-              color: "text.primary",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              mb: 1,
-            }}
-          >
-            {post.content}
-          </Typography>
+          <Box>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.primary",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                mb: hasLongContent && !isTextExpanded ? 0 : 1,
+              }}
+            >
+              {displayContent}
+            </Typography>
+
+            {/* Show More Button */}
+            {hasLongContent && !isTextExpanded && (
+              <Typography
+                variant="body2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTextExpanded(true);
+                }}
+                sx={{
+                  color: "primary.main",
+                  cursor: "pointer",
+                  mb: 1,
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                さらに表示
+              </Typography>
+            )}
+          </Box>
 
           {/* Images */}
           {images.length > 0 && (

@@ -747,7 +747,12 @@ export class PostModel {
     }
 
     const row = result.rows[0];
-    const post: PostWithStats = { ...row };
+    const post: PostWithStats = {
+      ...row,
+      // Ensure like_count and reply_count are numbers
+      like_count: parseInt(row.like_count) || 0,
+      reply_count: parseInt(row.reply_count) || 0,
+    };
 
     // Format quoted post if present
     if (row.quoted_post_id_info) {

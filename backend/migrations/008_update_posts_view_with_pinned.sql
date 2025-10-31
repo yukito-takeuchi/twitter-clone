@@ -17,6 +17,7 @@ SELECT
     p.quoted_post_id,
     p.is_pinned,
     p.pinned_at,
+    p.is_deleted,
     p.view_count,
     p.created_at,
     p.updated_at,

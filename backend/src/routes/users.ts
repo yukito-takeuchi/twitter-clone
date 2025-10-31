@@ -25,6 +25,12 @@ router.get("/firebase/:firebase_uid", userController.getUserByFirebaseUid);
 // Get user by username
 router.get("/username/:username", userController.getUserByUsername);
 
+// Get pinned post for a user (must be before /:id route)
+router.get("/:userId/pinned-post", postController.getPinnedPost);
+
+// Get pinned repost for a user (must be before /:id route)
+router.get("/:userId/pinned-repost", repostController.getPinnedRepost);
+
 // Get user by ID
 router.get("/:id", userController.getUserById);
 
@@ -36,11 +42,5 @@ router.delete("/:id", userController.deleteUser);
 
 // Hard delete user (permanent) - for development/testing only
 router.delete("/:id/permanent", userController.hardDeleteUser);
-
-// Get pinned post for a user
-router.get("/:userId/pinned-post", postController.getPinnedPost);
-
-// Get pinned repost for a user
-router.get("/:userId/pinned-repost", repostController.getPinnedRepost);
 
 export default router;

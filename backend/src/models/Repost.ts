@@ -284,6 +284,8 @@ export class RepostModel {
         p.*,
         r.created_at as reposted_at,
         r.user_id as reposted_by_user_id,
+        r.is_pinned,
+        r.pinned_at,
         ru.username as reposted_by_username,
         ru.display_name as reposted_by_display_name,
         rp.avatar_url as reposted_by_avatar_url,

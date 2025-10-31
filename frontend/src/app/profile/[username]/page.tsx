@@ -29,6 +29,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import Header from "@/components/layout/Header";
 import PostCard from "@/components/posts/PostCard";
 import ProfileEditDialog from "@/components/profile/ProfileEditDialog";
+import MediaGrid from "@/components/profile/MediaGrid";
 import { userApi, postApi, followApi } from "@/lib/api";
 import type { User, Profile, PostWithStats } from "@/types";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -63,6 +64,12 @@ export default function ProfilePage() {
   const [repliesHasMore, setRepliesHasMore] = useState(true);
   const [repliesOffset, setRepliesOffset] = useState(0);
 
+  // Pagination for media tab
+  const [media, setMedia] = useState<PostWithStats[]>([]);
+  const [mediaLoadingMore, setMediaLoadingMore] = useState(false);
+  const [mediaHasMore, setMediaHasMore] = useState(true);
+  const [mediaOffset, setMediaOffset] = useState(0);
+
   const LIMIT = 10;
 
   useEffect(() => {
@@ -87,6 +94,18 @@ export default function ProfilePage() {
       setPosts(userPosts);
       setPostsOffset(LIMIT);
       setPostsHasMore((userPosts || []).length >= LIMIT);
+
+      // Extract media posts (posts with images, excluding reposts)
+      const mediaPosts = userPosts.filter(post => {
+        // Exclude reposts entirely
+        if (post.is_repost) return false;
+
+        // Only include posts with images in the main content
+        return post.image_url && post.image_url.trim().length > 0;
+      });
+      setMedia(mediaPosts);
+      setMediaOffset(LIMIT);
+      setMediaHasMore((userPosts || []).length >= LIMIT);
 
       // Fetch user's replies - initial 10 replies
       const userReplies = await postApi.getRepliesByUser(userData.user.id, LIMIT, 0, currentUser?.id);
@@ -209,6 +228,38 @@ export default function ProfilePage() {
     }
   }, [user, repliesLoadingMore, repliesHasMore, repliesOffset, currentUser, LIMIT]);
 
+  // Load more media
+  const loadMoreMedia = useCallback(async () => {
+    if (!user || mediaLoadingMore || !mediaHasMore) return;
+
+    try {
+      setMediaLoadingMore(true);
+
+      // Add 0.5s delay for loading UI
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const morePosts = await postApi.getByUser(user.id, LIMIT, mediaOffset, currentUser?.id);
+
+      if (morePosts && morePosts.length > 0) {
+        // Filter for media posts only
+        const newMediaPosts = morePosts.filter(post => {
+          if (post.is_repost) return false;
+          return post.image_url && post.image_url.trim().length > 0;
+        });
+
+        setMedia(prev => [...prev, ...newMediaPosts]);
+        setMediaOffset(prev => prev + LIMIT);
+        setMediaHasMore(morePosts.length >= LIMIT);
+      } else {
+        setMediaHasMore(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more media:", error);
+    } finally {
+      setMediaLoadingMore(false);
+    }
+  }, [user, mediaLoadingMore, mediaHasMore, mediaOffset, currentUser, LIMIT]);
+
   // Infinite scroll for posts tab
   const postsSentinelRef = useInfiniteScroll({
     onLoadMore: loadMorePosts,
@@ -221,6 +272,13 @@ export default function ProfilePage() {
     onLoadMore: loadMoreReplies,
     hasMore: repliesHasMore,
     loading: repliesLoadingMore,
+  });
+
+  // Infinite scroll for media tab
+  const mediaSentinelRef = useInfiniteScroll({
+    onLoadMore: loadMoreMedia,
+    hasMore: mediaHasMore,
+    loading: mediaLoadingMore,
   });
 
   const getImageUrl = (url: string | null) => {
@@ -639,12 +697,48 @@ export default function ProfilePage() {
             )}
           </>
         )}
-        {(tabValue === 2 || tabValue === 3) && (
+        {tabValue === 2 && (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               この機能は実装中です
             </Typography>
           </Box>
+        )}
+        {tabValue === 3 && (
+          <>
+            {media.length === 0 ? (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography variant="h6" sx={{ color: "text.secondary" }}>
+                  まだメディアがありません
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <MediaGrid posts={media} />
+
+                {/* Loading More Indicator */}
+                {mediaLoadingMore && (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+
+                {/* Sentinel Element for Infinite Scroll */}
+                {mediaHasMore && !mediaLoadingMore && (
+                  <div ref={mediaSentinelRef} style={{ height: "20px" }} />
+                )}
+
+                {/* No More Media Message */}
+                {!mediaHasMore && media.length > 0 && (
+                  <Box sx={{ p: 4, textAlign: "center" }}>
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                      すべてのメディアを表示しました
+                    </Typography>
+                  </Box>
+                )}
+              </>
+            )}
+          </>
         )}
       </Box>
 

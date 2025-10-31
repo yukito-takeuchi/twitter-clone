@@ -395,19 +395,18 @@ export const postController = {
 
   /**
    * Unpin a post from user's profile
-   * DELETE /api/posts/:postId/pin
+   * DELETE /api/posts/:userId/:postId/pin
    */
   unpinPost: asyncHandler(async (req: Request, res: Response) => {
-    const { postId } = req.params;
-    const { user_id } = req.body;
+    const { userId, postId } = req.params;
 
-    console.log('[unpinPost] Request:', { postId, user_id, body: req.body, params: req.params });
+    console.log('[unpinPost] Request:', { userId, postId, params: req.params });
 
-    if (!user_id) {
+    if (!userId) {
       res.status(400).json({
         status: "error",
-        message: "user_id is required in request body",
-        received: { postId, user_id },
+        message: "userId is required in URL parameter",
+        received: { userId, postId },
       });
       return;
     }
@@ -416,18 +415,18 @@ export const postController = {
       res.status(400).json({
         status: "error",
         message: "postId is required in URL parameter",
-        received: { postId, user_id },
+        received: { userId, postId },
       });
       return;
     }
 
     // Check if user exists
-    const user = await UserModel.findById(user_id);
+    const user = await UserModel.findById(userId);
     if (!user) {
       res.status(404).json({
         status: "error",
         message: "User not found",
-        details: { user_id },
+        details: { userId },
       });
       return;
     }
@@ -443,13 +442,13 @@ export const postController = {
       return;
     }
 
-    const success = await PostModel.unpinPost(user_id, postId);
+    const success = await PostModel.unpinPost(userId, postId);
 
     if (!success) {
       res.status(400).json({
         status: "error",
         message: "Failed to unpin post. Post may not be pinned or you may not own it.",
-        details: { user_id, postId },
+        details: { userId, postId },
       });
       return;
     }
@@ -457,7 +456,7 @@ export const postController = {
     res.json({
       status: "success",
       message: "Post unpinned successfully",
-      data: { user_id, postId },
+      data: { userId, postId },
     });
   }),
 

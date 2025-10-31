@@ -170,13 +170,7 @@ POST /api/posts/:postId/pin
 
 ### 11. 投稿のピン留め解除
 ```
-DELETE /api/posts/:postId/pin
-```
-**Body**:
-```json
-{
-  "user_id": "user-uuid-here"
-}
+DELETE /api/posts/:userId/:postId/pin
 ```
 
 ### 12. ユーザーのピン留め投稿取得
@@ -315,13 +309,7 @@ POST /api/reposts/:postId/pin
 
 ### 7. リポストのピン留め解除
 ```
-DELETE /api/reposts/:postId/pin
-```
-**Body**:
-```json
-{
-  "user_id": "user-uuid-here"
-}
+DELETE /api/reposts/:userId/:postId/pin
 ```
 
 ### 8. ユーザーのピン留めリポスト取得

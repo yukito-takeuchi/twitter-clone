@@ -23,6 +23,6 @@ router.get("/check/:userId/:postId", repostController.checkIfReposted);
 router.post("/:postId/pin", repostController.pinRepost);
 
 // Unpin repost from profile
-router.delete("/:postId/pin", repostController.unpinRepost);
+router.delete("/:userId/:postId/pin", repostController.unpinRepost);
 
 export default router;

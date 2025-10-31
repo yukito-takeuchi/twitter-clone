@@ -42,6 +42,6 @@ router.delete("/:id", postController.deletePost);
 router.post("/:postId/pin", postController.pinPost);
 
 // Unpin post from profile
-router.delete("/:postId/pin", postController.unpinPost);
+router.delete("/:userId/:postId/pin", postController.unpinPost);
 
 export default router;

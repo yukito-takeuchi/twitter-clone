@@ -187,6 +187,32 @@ export const messageController = {
       image_id: image.id,
     });
 
+    // Emit Socket.IO event for real-time message delivery
+    const io = req.app.get("io");
+    if (io) {
+      try {
+        // Get message with full details (sender info, etc.)
+        const messages = await MessageModel.findByConversationId({
+          conversationId: conversation_id,
+          userId: sender_id,
+          limit: 1,
+          offset: 0,
+        });
+        const messageWithDetails = messages[0];
+
+        if (messageWithDetails) {
+          // Broadcast to conversation room for real-time update
+          io.to(`conversation:${conversation_id}`).emit(
+            "message:receive",
+            messageWithDetails
+          );
+        }
+      } catch (error) {
+        console.error("Failed to emit Socket.IO event for image message:", error);
+        // Continue execution even if Socket.IO fails
+      }
+    }
+
     // Get recipient ID and create notification
     const recipientId = await ConversationModel.getOtherParticipant(
       conversation_id,

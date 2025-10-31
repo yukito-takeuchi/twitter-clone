@@ -268,6 +268,69 @@ GET /api/follows/check/:followerId/:followingId
 
 ---
 
+## リポストAPI
+
+### 1. リポスト
+```
+POST /api/reposts
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here",
+  "post_id": "post-uuid-here"
+}
+```
+
+### 2. リポスト解除
+```
+DELETE /api/reposts/:userId/:postId
+```
+
+### 3. 投稿をリポストしたユーザー一覧
+```
+GET /api/reposts/post/:postId?limit=20&offset=0
+```
+
+### 4. ユーザーがリポストした投稿一覧
+```
+GET /api/reposts/user/:userId?limit=20&offset=0
+```
+
+### 5. リポスト確認
+```
+GET /api/reposts/check/:userId/:postId
+```
+
+### 6. リポストをピン留め
+```
+POST /api/reposts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 7. リポストのピン留め解除
+```
+DELETE /api/reposts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 8. ユーザーのピン留めリポスト取得
+```
+GET /api/users/:userId/pinned-repost?current_user_id=current-user-uuid
+```
+
+---
+
 ## テストシナリオ例
 
 ### 1. ユーザー作成とプロフィール設定

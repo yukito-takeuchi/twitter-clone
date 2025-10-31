@@ -192,12 +192,14 @@ export const messageController = {
     if (io) {
       try {
         // Get message with full details (sender info, etc.)
-        const messages = await MessageModel.findByConversationId({
-          conversationId: conversation_id,
-          userId: sender_id,
-          limit: 1,
-          offset: 0,
-        });
+        const messages = await MessageModel.findByConversationId(
+          {
+            conversation_id: conversation_id,
+            limit: 1,
+            offset: 0,
+          },
+          sender_id
+        );
         const messageWithDetails = messages[0];
 
         if (messageWithDetails) {

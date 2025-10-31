@@ -443,6 +443,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 color: "text.primary",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
+                fontSize: "15px",
+                lineHeight: 1.3,
                 mb: hasLongContent && !isTextExpanded ? 0 : 1,
               }}
             >
@@ -460,6 +462,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 sx={{
                   color: "primary.main",
                   cursor: "pointer",
+                  fontSize: "15px",
                   mb: 1,
                   "&:hover": {
                     textDecoration: "underline",

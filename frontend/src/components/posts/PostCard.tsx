@@ -48,7 +48,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     postId: post.id,
     userId: user?.id || null,
     initialLikeCount: likeCount,
-    pollingInterval: 5000,
+    pollingInterval: 20000,
     enabled: true,
   });
   const [isBookmarked, setIsBookmarked] = useState(
@@ -91,11 +91,20 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       } else {
         await likeApi.like({ post_id: post.id, user_id: user.id });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to toggle like:", error);
-      // Rollback on error
-      setIsLiked(previousIsLiked);
-      setLikeCount(previousLikeCount);
+      const status = error?.response?.status;
+      // If server says already liked (409) while we tried to like,
+      // or already unliked (404) while we tried to unlike, keep optimistic state.
+      if (!previousIsLiked && status === 409) {
+        // Already liked on server; keep isLiked=true and incremented count
+      } else if (previousIsLiked && status === 404) {
+        // Already unliked on server; keep isLiked=false and decremented count
+      } else {
+        // Other errors: rollback
+        setIsLiked(previousIsLiked);
+        setLikeCount(previousLikeCount);
+      }
     } finally {
       setIsLiking(false);
     }
@@ -141,9 +150,18 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), {
-        addSuffix: true,
-        locale: ja,
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      if (diffInHours < 24) {
+        return formatDistanceToNow(date, { addSuffix: true, locale: ja });
+      }
+
+      // 24時間以上は「10月20日」表記
+      return date.toLocaleDateString("ja-JP", {
+        month: "long",
+        day: "numeric",
       });
     } catch {
       return "";
@@ -256,12 +274,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             gap: 1,
             mb: 1,
             ml: 5,
-            color: "text.secondary"
+            color: "text.secondary",
           }}
         >
           <RepeatOutlined sx={{ fontSize: 16 }} />
-          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
-            {post.reposted_by_display_name || post.reposted_by_username}さんがリポスト
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontSize: "0.875rem" }}
+          >
+            {post.reposted_by_display_name || post.reposted_by_username}
+            さんがリポスト
           </Typography>
         </Box>
       )}
@@ -426,9 +448,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           )}
 
           {/* Quoted Post */}
-          {post.quoted_post && (
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          )}
+          {post.quoted_post && <QuotedPostCard quotedPost={post.quoted_post} />}
 
           {/* Action Buttons */}
           <Box

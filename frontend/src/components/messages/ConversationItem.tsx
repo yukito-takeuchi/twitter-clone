@@ -1,7 +1,11 @@
 "use client";
 
 import { ConversationWithDetails } from "@/types/messages";
-import { getOtherParticipant, formatMessageTime, getMessagePreview } from "@/lib/message-utils";
+import {
+  getOtherParticipant,
+  formatMessageTime,
+  getMessagePreview,
+} from "@/lib/message-utils";
 import Image from "next/image";
 
 interface ConversationItemProps {
@@ -49,7 +53,11 @@ export default function ConversationItem({
         {otherParticipant.avatar ? (
           <Image
             src={getImageUrl(otherParticipant.avatar)}
-            alt={otherParticipant.display_name}
+            alt={(
+              otherParticipant.display_name ||
+              otherParticipant.username ||
+              ""
+            ).toString()}
             width={48}
             height={48}
             className="rounded-full"
@@ -57,7 +65,13 @@ export default function ConversationItem({
         ) : (
           <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
             <span className="text-xl font-semibold text-gray-600 dark:text-gray-300">
-              {otherParticipant.display_name.charAt(0).toUpperCase()}
+              {(
+                otherParticipant.display_name ||
+                otherParticipant.username ||
+                "?"
+              )
+                .charAt(0)
+                .toUpperCase()}
             </span>
           </div>
         )}
@@ -67,7 +81,13 @@ export default function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between mb-1">
           <div className="flex items-center gap-2">
-            <span className={`font-semibold ${hasUnread ? "text-black dark:text-white" : "text-gray-900 dark:text-gray-100"}`}>
+            <span
+              className={`font-semibold ${
+                hasUnread
+                  ? "text-black dark:text-white"
+                  : "text-gray-900 dark:text-gray-100"
+              }`}
+            >
               {otherParticipant.display_name}
             </span>
           </div>
@@ -77,7 +97,13 @@ export default function ConversationItem({
         </div>
 
         <div className="flex items-center gap-2">
-          <p className={`text-sm truncate ${hasUnread ? "font-semibold text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>
+          <p
+            className={`text-sm truncate ${
+              hasUnread
+                ? "font-semibold text-gray-900 dark:text-gray-100"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
             {isSentByMe && messagePreview && (
               <span className="text-gray-500 dark:text-gray-500">You: </span>
             )}

@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Box, Typography, Avatar, CircularProgress } from "@mui/material";
-import { ConversationWithDetails, MessageWithDetails, SocketMessageReceive } from "@/types/messages";
+import {
+  ConversationWithDetails,
+  MessageWithDetails,
+  SocketMessageReceive,
+} from "@/types/messages";
 import { getMessages, markAllMessagesAsRead } from "@/lib/api-messages";
 import { getOtherParticipant } from "@/lib/message-utils";
 import { useSocket, useConversation } from "@/hooks/useSocket";
@@ -145,11 +149,21 @@ export default function MessageThread({
         }}
       >
         <Avatar
-          src={otherParticipant.avatar ? getImageUrl(otherParticipant.avatar) : undefined}
-          alt={otherParticipant.display_name}
+          src={
+            otherParticipant.avatar
+              ? getImageUrl(otherParticipant.avatar)
+              : undefined
+          }
+          alt={(
+            otherParticipant.display_name ||
+            otherParticipant.username ||
+            ""
+          ).toString()}
           sx={{ width: 40, height: 40 }}
         >
-          {otherParticipant.display_name.charAt(0).toUpperCase()}
+          {(otherParticipant.display_name || otherParticipant.username || "?")
+            .charAt(0)
+            .toUpperCase()}
         </Avatar>
         <Box>
           <Typography variant="subtitle1" fontWeight="bold">

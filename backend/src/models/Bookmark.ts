@@ -70,6 +70,12 @@ export class BookmarkModel {
         p.*,
         b.created_at as bookmarked_at,
         true as is_bookmarked_by_current_user,
+        EXISTS(
+          SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1
+        ) as is_liked_by_current_user,
+        EXISTS(
+          SELECT 1 FROM reposts WHERE post_id = p.id AND user_id = $1
+        ) as is_reposted_by_current_user,
         -- Quoted post information
         qp.id as quoted_post_id_info,
         qp.user_id as quoted_post_user_id,

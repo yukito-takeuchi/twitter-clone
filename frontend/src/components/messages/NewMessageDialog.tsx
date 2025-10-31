@@ -46,7 +46,9 @@ export default function NewMessageDialog({
 
       // Find mutual followers (users who follow you and you follow them)
       const followerIds = new Set(followers.map((f: any) => f.id));
-      const mutualUsers = following.filter((user: any) => followerIds.has(user.id));
+      const mutualUsers = following.filter((user: any) =>
+        followerIds.has(user.id)
+      );
 
       setUsers(mutualUsers);
       setFilteredUsers(mutualUsers);
@@ -66,7 +68,7 @@ export default function NewMessageDialog({
       const filtered = users.filter(
         (user) =>
           user.username.toLowerCase().includes(term) ||
-          user.display_name.toLowerCase().includes(term)
+          (user.display_name || "").toLowerCase().includes(term)
       );
       setFilteredUsers(filtered);
     }
@@ -84,7 +86,10 @@ export default function NewMessageDialog({
       }
 
       // Get or create conversation
-      const { conversation } = await getOrCreateConversation(currentUserId, user.id);
+      const { conversation } = await getOrCreateConversation(
+        currentUserId,
+        user.id
+      );
 
       // Notify parent and close
       onConversationCreated(conversation.id);
@@ -100,6 +105,15 @@ export default function NewMessageDialog({
   };
 
   if (!isOpen) return null;
+
+  const getImageUrl = (url: string | null | undefined) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("blob:")) return url;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+      "http://localhost:3001";
+    return `${baseUrl}${url}`;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -153,8 +167,8 @@ export default function NewMessageDialog({
               >
                 {user.avatar_url ? (
                   <Image
-                    src={user.avatar_url}
-                    alt={user.display_name}
+                    src={getImageUrl(user.avatar_url)}
+                    alt={(user.display_name || user.username || "").toString()}
                     width={48}
                     height={48}
                     className="rounded-full"
@@ -162,12 +176,16 @@ export default function NewMessageDialog({
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
                     <span className="text-xl font-semibold text-gray-600 dark:text-gray-300">
-                      {user.display_name.charAt(0).toUpperCase()}
+                      {(user.display_name || user.username || "?")
+                        .charAt(0)
+                        .toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate">{user.display_name}</p>
+                  <p className="font-semibold truncate">
+                    {user.display_name || user.username}
+                  </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     @{user.username}
                   </p>

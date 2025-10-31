@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Box, Avatar, Typography } from '@mui/material';
-import { QuotedPost } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
-import ImageModal from '@/components/common/ImageModal';
+import { useState } from "react";
+import { Box, Avatar, Typography } from "@mui/material";
+import { QuotedPost } from "@/types";
+import { formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import ImageModal from "@/components/common/ImageModal";
 
 interface QuotedPostCardProps {
   quotedPost: QuotedPost;
@@ -19,21 +19,30 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), {
-        addSuffix: true,
-        locale: ja,
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      if (diffInHours < 24) {
+        return formatDistanceToNow(date, { addSuffix: true, locale: ja });
+      }
+
+      // 24時間以上は「10月20日」の形式
+      return date.toLocaleDateString("ja-JP", {
+        month: "long",
+        day: "numeric",
       });
     } catch {
-      return '';
+      return "";
     }
   };
 
   const getImageUrl = (url: string | null) => {
-    if (!url) return '';
-    if (url.startsWith('http')) {
+    if (!url) return "";
+    if (url.startsWith("http")) {
       return url;
     }
-    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${url}`;
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${url}`;
   };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -50,7 +59,10 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
 
   // Parse image_url - could be a single URL or comma-separated URLs
   const images = quotedPost.image_url
-    ? quotedPost.image_url.split(",").map((url) => url.trim()).filter((url) => url.length > 0)
+    ? quotedPost.image_url
+        .split(",")
+        .map((url) => url.trim())
+        .filter((url) => url.length > 0)
     : [];
 
   return (
@@ -58,35 +70,51 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
       onClick={handleClick}
       sx={{
         border: 1,
-        borderColor: 'divider',
+        borderColor: "divider",
         borderRadius: 2,
         p: 1.5,
         mt: 1,
-        cursor: 'pointer',
-        transition: 'background-color 0.2s',
-        '&:hover': {
-          bgcolor: 'action.hover',
+        cursor: "pointer",
+        transition: "background-color 0.2s",
+        "&:hover": {
+          bgcolor: "action.hover",
         },
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
         <Avatar
-          src={quotedPost.avatar_url ? getImageUrl(quotedPost.avatar_url) : undefined}
+          src={
+            quotedPost.avatar_url
+              ? getImageUrl(quotedPost.avatar_url)
+              : undefined
+          }
           sx={{ width: 20, height: 20 }}
         >
           {quotedPost.display_name?.[0] || quotedPost.username[0]}
         </Avatar>
-        <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '14px' }}>
+        <Typography
+          variant="body2"
+          sx={{ fontWeight: "bold", fontSize: "14px" }}
+        >
           {quotedPost.display_name || quotedPost.username}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '14px' }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "text.secondary", fontSize: "14px" }}
+        >
           @{quotedPost.username}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '14px' }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "text.secondary", fontSize: "14px" }}
+        >
           ·
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '14px' }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "text.secondary", fontSize: "14px" }}
+        >
           {formatTime(quotedPost.created_at)}
         </Typography>
       </Box>
@@ -95,16 +123,16 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
       <Typography
         variant="body2"
         sx={{
-          color: 'text.primary',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          fontSize: '14px',
+          color: "text.primary",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          fontSize: "14px",
           mb: images.length > 0 ? 1 : 0,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          display: '-webkit-box',
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
           WebkitLineClamp: 5,
-          WebkitBoxOrient: 'vertical',
+          WebkitBoxOrient: "vertical",
         }}
       >
         {quotedPost.content}

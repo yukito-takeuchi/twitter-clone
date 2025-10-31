@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
-import { postApi, likeApi, bookmarkApi } from "@/lib/api";
+import { postApi, likeApi, bookmarkApi, repostApi } from "@/lib/api";
 import type { PostWithStats } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -53,13 +53,15 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
+  const [isReposting, setIsReposting] = useState(false);
 
   // Real-time like count with animation
   const { likeCount: realtimeLikeCount } = useRealtimeLikeCount({
     postId: postId,
     userId: user?.id || null,
     initialLikeCount: likeCount,
-    pollingInterval: 5000,
+    pollingInterval: 20000,
     enabled: !!post,
   });
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -96,6 +98,7 @@ export default function PostDetailPage() {
       setPost(postData);
       setIsLiked(postData.is_liked_by_current_user || false);
       setLikeCount(postData.like_count || 0);
+      setIsReposted(postData.is_reposted_by_current_user || false);
 
       // Check bookmark status
       if (user) {
@@ -220,15 +223,40 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleRepost = async () => {
+    if (!user || !post || isReposting) return;
+
+    setIsReposting(true);
+    try {
+      if (isReposted) {
+        await repostApi.unrepost(post.id, user.id);
+        setIsReposted(false);
+      } else {
+        await repostApi.repost({ user_id: user.id, post_id: post.id });
+        setIsReposted(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle repost:", error);
+    } finally {
+      setIsReposting(false);
+    }
+  };
+
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("ja-JP", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      const hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const period = hours < 12 ? "午前" : "午後";
+      const hour12 = ((hours + 11) % 12) + 1; // 0を12に
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+
+      return `${period}${hour12}:${minutes} · ${year}年${month}月${day}日`;
+    } catch {
+      return "";
+    }
   };
 
   const handleImageClick = (index: number) => {
@@ -531,10 +559,7 @@ export default function PostDetailPage() {
           </Box>
           <Box sx={{ display: "flex", gap: 0.5 }}>
             <Box sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-              <AnimatedCounter
-                value={realtimeLikeCount}
-                duration={300}
-              />
+              <AnimatedCounter value={realtimeLikeCount} duration={300} />
             </Box>
             <Typography variant="body1" sx={{ color: "text.secondary" }}>
               いいね
@@ -573,8 +598,10 @@ export default function PostDetailPage() {
           </IconButton>
 
           <IconButton
+            onClick={handleRepost}
+            disabled={!user || isReposting}
             sx={{
-              color: "text.secondary",
+              color: isReposted ? "#00BA7C" : "text.secondary",
               "&:hover": {
                 bgcolor: "rgba(0, 186, 124, 0.1)",
                 color: "#00BA7C",

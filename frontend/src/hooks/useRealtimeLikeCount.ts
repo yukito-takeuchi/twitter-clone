@@ -15,7 +15,7 @@ export function useRealtimeLikeCount({
   postId,
   userId,
   initialLikeCount,
-  pollingInterval = 5000,
+  pollingInterval = 20000,
   enabled = true,
 }: UseRealtimeLikeCountOptions) {
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -29,7 +29,9 @@ export function useRealtimeLikeCount({
 
   fetchLikeCountRef.current = async () => {
     if (!enabled || !postId) {
-      console.log(`[useRealtimeLikeCount] Skipping fetch - enabled: ${enabled}, postId: ${postId}`);
+      console.log(
+        `[useRealtimeLikeCount] Skipping fetch - enabled: ${enabled}, postId: ${postId}`
+      );
       return;
     }
 
@@ -44,29 +46,48 @@ export function useRealtimeLikeCount({
 
       abortControllerRef.current = new AbortController();
 
-      console.log(`[useRealtimeLikeCount] Calling API for post ${postId}, userId: ${userId}`);
+      console.log(
+        `[useRealtimeLikeCount] Calling API for post ${postId}, userId: ${userId}`
+      );
       const post = await postApi.getById(postId, userId);
-      console.log(`[useRealtimeLikeCount] API response for post ${postId}:`, post);
-      console.log(`[useRealtimeLikeCount] like_count type: ${typeof post?.like_count}, value: ${post?.like_count}`);
+      console.log(
+        `[useRealtimeLikeCount] API response for post ${postId}:`,
+        post
+      );
+      console.log(
+        `[useRealtimeLikeCount] like_count type: ${typeof post?.like_count}, value: ${
+          post?.like_count
+        }`
+      );
 
       if (post && typeof post.like_count === "number") {
-        console.log(`[useRealtimeLikeCount] Setting like count to: ${post.like_count}`);
+        console.log(
+          `[useRealtimeLikeCount] Setting like count to: ${post.like_count}`
+        );
         setLikeCount(post.like_count);
       } else if (post && post.like_count !== undefined) {
         // Try to convert to number if it's a string
         const likeCountNum = Number(post.like_count);
-        console.log(`[useRealtimeLikeCount] like_count is not a number, converting: ${post.like_count} -> ${likeCountNum}`);
+        console.log(
+          `[useRealtimeLikeCount] like_count is not a number, converting: ${post.like_count} -> ${likeCountNum}`
+        );
         if (!isNaN(likeCountNum)) {
           setLikeCount(likeCountNum);
         }
       } else {
-        console.warn(`[useRealtimeLikeCount] Invalid like_count for post ${postId}:`, post?.like_count);
+        console.warn(
+          `[useRealtimeLikeCount] Invalid like_count for post ${postId}:`,
+          post?.like_count
+        );
       }
     } catch (err) {
       // Ignore abort errors
       if (err instanceof Error && err.name !== "AbortError") {
         setError(err);
-        console.error(`[useRealtimeLikeCount] Error fetching like count for post ${postId}:`, err);
+        console.error(
+          `[useRealtimeLikeCount] Error fetching like count for post ${postId}:`,
+          err
+        );
       }
     } finally {
       setIsLoading(false);
@@ -84,7 +105,9 @@ export function useRealtimeLikeCount({
       return;
     }
 
-    console.log(`[useRealtimeLikeCount] Starting polling for post ${postId} (userId: ${userId}) with interval ${pollingInterval}ms`);
+    console.log(
+      `[useRealtimeLikeCount] Starting polling for post ${postId} (userId: ${userId}) with interval ${pollingInterval}ms`
+    );
 
     // Initial fetch
     fetchLikeCountRef.current?.();
@@ -101,7 +124,9 @@ export function useRealtimeLikeCount({
     // Listen for visibility changes to resume polling when tab becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        console.log(`[useRealtimeLikeCount] Visibility changed - fetching for post ${postId}`);
+        console.log(
+          `[useRealtimeLikeCount] Visibility changed - fetching for post ${postId}`
+        );
         fetchLikeCountRef.current?.();
       }
     };

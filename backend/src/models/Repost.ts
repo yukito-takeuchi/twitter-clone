@@ -224,4 +224,130 @@ export class RepostModel {
     );
     return result.rows;
   }
+
+  // Pin a repost to user's profile
+  static async pinRepost(userId: string, postId: string): Promise<boolean> {
+    try {
+      // Start transaction
+      await query("BEGIN");
+
+      // Verify repost exists and belongs to user
+      const repostCheck = await query(
+        `SELECT user_id FROM reposts WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      );
+
+      if (repostCheck.rows.length === 0) {
+        await query("ROLLBACK");
+        return false;
+      }
+
+      // Unpin any existing pinned post for this user
+      await query(
+        `UPDATE posts SET is_pinned = false, pinned_at = NULL WHERE user_id = $1 AND is_pinned = true`,
+        [userId]
+      );
+
+      // Unpin any existing pinned repost for this user
+      await query(
+        `UPDATE reposts SET is_pinned = false, pinned_at = NULL WHERE user_id = $1 AND is_pinned = true`,
+        [userId]
+      );
+
+      // Pin the specified repost
+      const result = await query(
+        `UPDATE reposts SET is_pinned = true, pinned_at = NOW() WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      );
+
+      await query("COMMIT");
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      await query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  // Unpin a repost from user's profile
+  static async unpinRepost(userId: string, postId: string): Promise<boolean> {
+    const result = await query(
+      `UPDATE reposts SET is_pinned = false, pinned_at = NULL WHERE user_id = $1 AND post_id = $2`,
+      [userId, postId]
+    );
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Get pinned repost for a user (returns the reposted post with repost metadata)
+  static async getPinnedRepost(userId: string, currentUserId?: string): Promise<any | null> {
+    const result = await query(
+      `SELECT
+        p.*,
+        r.created_at as reposted_at,
+        r.user_id as reposted_by_user_id,
+        ru.username as reposted_by_username,
+        ru.display_name as reposted_by_display_name,
+        rp.avatar_url as reposted_by_avatar_url,
+        true as is_repost,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
+       FROM reposts r
+       JOIN posts_with_stats p ON r.post_id = p.id
+       JOIN users ru ON r.user_id = ru.id
+       LEFT JOIN profiles rp ON ru.id = rp.user_id
+       LEFT JOIN posts qp ON p.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE r.user_id = $1 AND r.is_pinned = true
+       LIMIT 1`,
+      [userId, currentUserId || null]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    const post: any = { ...row };
+
+    // Format quoted post if present
+    if (row.quoted_post_id_info) {
+      post.quoted_post = {
+        id: row.quoted_post_id_info,
+        user_id: row.quoted_post_user_id,
+        username: row.quoted_post_username,
+        display_name: row.quoted_post_display_name,
+        avatar_url: row.quoted_post_avatar_url,
+        content: row.quoted_post_content,
+        image_url: row.quoted_post_image_url,
+        created_at: row.quoted_post_created_at,
+      };
+    }
+
+    return post;
+  }
 }

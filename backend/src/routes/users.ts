@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { userController } from "../controllers/userController";
+import { postController } from "../controllers/postController";
+import { repostController } from "../controllers/repostController";
 import {
   validateCreateUser,
   validateUpdateUser,
@@ -34,5 +36,11 @@ router.delete("/:id", userController.deleteUser);
 
 // Hard delete user (permanent) - for development/testing only
 router.delete("/:id/permanent", userController.hardDeleteUser);
+
+// Get pinned post for a user
+router.get("/:userId/pinned-post", postController.getPinnedPost);
+
+// Get pinned repost for a user
+router.get("/:userId/pinned-repost", repostController.getPinnedRepost);
 
 export default router;

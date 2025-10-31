@@ -19,4 +19,10 @@ router.get("/user/:userId", validatePagination, repostController.getPostsReposte
 // Check if user has reposted a post
 router.get("/check/:userId/:postId", repostController.checkIfReposted);
 
+// Pin repost to profile
+router.post("/:postId/pin", repostController.pinRepost);
+
+// Unpin repost from profile
+router.delete("/:postId/pin", repostController.unpinRepost);
+
 export default router;

@@ -314,4 +314,96 @@ export const postController = {
       },
     });
   }),
+
+  /**
+   * Pin a post to user's profile
+   * POST /api/posts/:postId/pin
+   */
+  pinPost: asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      res.status(400).json({
+        status: "error",
+        message: "user_id is required",
+      });
+      return;
+    }
+
+    const success = await PostModel.pinPost(user_id, postId);
+
+    if (!success) {
+      res.status(400).json({
+        status: "error",
+        message: "Failed to pin post. Post may not exist or you may not own it.",
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Post pinned successfully",
+    });
+  }),
+
+  /**
+   * Unpin a post from user's profile
+   * DELETE /api/posts/:postId/pin
+   */
+  unpinPost: asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      res.status(400).json({
+        status: "error",
+        message: "user_id is required",
+      });
+      return;
+    }
+
+    const success = await PostModel.unpinPost(user_id, postId);
+
+    if (!success) {
+      res.status(400).json({
+        status: "error",
+        message: "Failed to unpin post",
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Post unpinned successfully",
+    });
+  }),
+
+  /**
+   * Get pinned post for a user
+   * GET /api/users/:userId/pinned-post
+   */
+  getPinnedPost: asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { current_user_id } = req.query;
+
+    const pinnedPost = await PostModel.getPinnedPost(userId, current_user_id as string);
+
+    if (!pinnedPost) {
+      res.json({
+        status: "success",
+        data: {
+          pinnedPost: null,
+        },
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      data: {
+        pinnedPost,
+      },
+    });
+  }),
 };

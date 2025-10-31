@@ -148,4 +148,96 @@ export const repostController = {
       data: { has_reposted: hasReposted },
     });
   }),
+
+  /**
+   * Pin a repost to user's profile
+   * POST /api/reposts/:postId/pin
+   */
+  pinRepost: asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      res.status(400).json({
+        status: "error",
+        message: "user_id is required",
+      });
+      return;
+    }
+
+    const success = await RepostModel.pinRepost(user_id, postId);
+
+    if (!success) {
+      res.status(400).json({
+        status: "error",
+        message: "Failed to pin repost. Repost may not exist or you may not own it.",
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Repost pinned successfully",
+    });
+  }),
+
+  /**
+   * Unpin a repost from user's profile
+   * DELETE /api/reposts/:postId/pin
+   */
+  unpinRepost: asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      res.status(400).json({
+        status: "error",
+        message: "user_id is required",
+      });
+      return;
+    }
+
+    const success = await RepostModel.unpinRepost(user_id, postId);
+
+    if (!success) {
+      res.status(400).json({
+        status: "error",
+        message: "Failed to unpin repost",
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Repost unpinned successfully",
+    });
+  }),
+
+  /**
+   * Get pinned repost for a user
+   * GET /api/users/:userId/pinned-repost
+   */
+  getPinnedRepost: asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { current_user_id } = req.query;
+
+    const pinnedRepost = await RepostModel.getPinnedRepost(userId, current_user_id as string);
+
+    if (!pinnedRepost) {
+      res.json({
+        status: "success",
+        data: {
+          pinnedRepost: null,
+        },
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      data: {
+        pinnedRepost,
+      },
+    });
+  }),
 };

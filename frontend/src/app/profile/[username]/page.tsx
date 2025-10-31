@@ -30,7 +30,7 @@ import Header from "@/components/layout/Header";
 import PostCard from "@/components/posts/PostCard";
 import ProfileEditDialog from "@/components/profile/ProfileEditDialog";
 import MediaGrid from "@/components/profile/MediaGrid";
-import { userApi, postApi, followApi } from "@/lib/api";
+import { userApi, postApi, followApi, repostApi } from "@/lib/api";
 import type { User, Profile, PostWithStats } from "@/types";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
@@ -69,6 +69,10 @@ export default function ProfilePage() {
   const [mediaLoadingMore, setMediaLoadingMore] = useState(false);
   const [mediaHasMore, setMediaHasMore] = useState(true);
   const [mediaOffset, setMediaOffset] = useState(0);
+
+  // Pinned posts
+  const [pinnedPost, setPinnedPost] = useState<PostWithStats | null>(null);
+  const [pinnedRepost, setPinnedRepost] = useState<PostWithStats | null>(null);
 
   const LIMIT = 10;
 
@@ -128,6 +132,18 @@ export default function ProfilePage() {
       ]);
       setFollowerCount(followers);
       setFollowingCount(following);
+
+      // Fetch pinned post and repost
+      try {
+        const [pinned, pinnedRepostData] = await Promise.all([
+          postApi.getPinnedPost(userData.user.id, currentUser?.id),
+          repostApi.getPinnedRepost(userData.user.id, currentUser?.id),
+        ]);
+        setPinnedPost(pinned);
+        setPinnedRepost(pinnedRepostData);
+      } catch (error) {
+        console.error("Failed to fetch pinned posts:", error);
+      }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
@@ -623,7 +639,16 @@ export default function ProfilePage() {
       <Box>
         {tabValue === 0 && (
           <>
-            {posts.length === 0 ? (
+            {/* Pinned Post or Repost */}
+            {(pinnedPost || pinnedRepost) && (
+              <PostCard
+                key={pinnedPost?.id || pinnedRepost?.id}
+                post={pinnedPost || pinnedRepost!}
+                onUpdate={fetchUserData}
+              />
+            )}
+
+            {posts.length === 0 && !pinnedPost && !pinnedRepost ? (
               <Box sx={{ p: 4, textAlign: "center" }}>
                 <Typography variant="h6" sx={{ color: "text.secondary" }}>
                   まだ投稿がありません
@@ -631,9 +656,16 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
-                ))}
+                {posts
+                  .filter(post => {
+                    // Filter out pinned post/repost from regular list
+                    if (pinnedPost && post.id === pinnedPost.id) return false;
+                    if (pinnedRepost && post.id === pinnedRepost.id) return false;
+                    return true;
+                  })
+                  .map((post) => (
+                    <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
+                  ))}
 
                 {/* Loading More Indicator */}
                 {postsLoadingMore && (
@@ -661,7 +693,16 @@ export default function ProfilePage() {
         )}
         {tabValue === 1 && (
           <>
-            {replies.length === 0 ? (
+            {/* Pinned Post or Repost (also show in Replies tab) */}
+            {(pinnedPost || pinnedRepost) && (
+              <PostCard
+                key={pinnedPost?.id || pinnedRepost?.id}
+                post={pinnedPost || pinnedRepost!}
+                onUpdate={fetchUserData}
+              />
+            )}
+
+            {replies.length === 0 && !pinnedPost && !pinnedRepost ? (
               <Box sx={{ p: 4, textAlign: "center" }}>
                 <Typography variant="h6" sx={{ color: "text.secondary" }}>
                   まだ返信がありません
@@ -669,9 +710,16 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {replies.map((reply) => (
-                  <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
-                ))}
+                {replies
+                  .filter(reply => {
+                    // Filter out pinned post/repost from regular list
+                    if (pinnedPost && reply.id === pinnedPost.id) return false;
+                    if (pinnedRepost && reply.id === pinnedRepost.id) return false;
+                    return true;
+                  })
+                  .map((reply) => (
+                    <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
+                  ))}
 
                 {/* Loading More Indicator */}
                 {repliesLoadingMore && (

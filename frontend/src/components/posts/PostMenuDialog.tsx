@@ -14,9 +14,12 @@ interface PostMenuDialogProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onPin?: () => void;
+  isPinned?: boolean;
+  showPinOption?: boolean;
 }
 
-export default function PostMenuDialog({ open, onClose, onEdit, onDelete }: PostMenuDialogProps) {
+export default function PostMenuDialog({ open, onClose, onEdit, onDelete, onPin, isPinned = false, showPinOption = false }: PostMenuDialogProps) {
   const handleEdit = () => {
     onClose();
     onEdit();
@@ -25,6 +28,11 @@ export default function PostMenuDialog({ open, onClose, onEdit, onDelete }: Post
   const handleDelete = () => {
     onClose();
     onDelete();
+  };
+
+  const handlePin = () => {
+    onClose();
+    if (onPin) onPin();
   };
 
   const handleClose = (event: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
@@ -90,27 +98,29 @@ export default function PostMenuDialog({ open, onClose, onEdit, onDelete }: Post
           />
         </ListItemButton>
 
-        {/* プロフィールに固定 - デザインのみ */}
-        <ListItemButton
-          disabled
-          sx={{
-            py: 1.5,
-            px: 2,
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <PushPin />
-          </ListItemIcon>
-          <ListItemText
-            primary="プロフィールに固定"
-            primaryTypographyProps={{
-              fontWeight: 'bold',
+        {/* プロフィールに固定 */}
+        {showPinOption && (
+          <ListItemButton
+            onClick={handlePin}
+            sx={{
+              py: 1.5,
+              px: 2,
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
             }}
-          />
-        </ListItemButton>
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <PushPin />
+            </ListItemIcon>
+            <ListItemText
+              primary={isPinned ? "プロフィールへの固定を解除" : "プロフィールに固定"}
+              primaryTypographyProps={{
+                fontWeight: 'bold',
+              }}
+            />
+          </ListItemButton>
+        )}
 
         {/* ポストの埋め込み - デザインのみ */}
         <ListItemButton

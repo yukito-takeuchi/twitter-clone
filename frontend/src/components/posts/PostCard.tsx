@@ -13,9 +13,10 @@ import {
   Bookmark,
   Share,
   MoreHoriz,
+  PushPin,
 } from "@mui/icons-material";
 import { PostWithStats } from "@/types";
-import { likeApi, bookmarkApi, repostApi } from "@/lib/api";
+import { likeApi, bookmarkApi, repostApi, postApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -66,6 +67,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(post.is_pinned || false);
+  const [isPinning, setIsPinning] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -247,8 +250,44 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     onUpdate?.();
   };
 
+  const handlePin = async () => {
+    if (!user || isPinning) return;
+
+    setIsPinning(true);
+    try {
+      if (isPinned) {
+        // Unpin
+        if (post.is_repost) {
+          await repostApi.unpinRepost(user.id, post.id);
+        } else {
+          await postApi.unpinPost(user.id, post.id);
+        }
+        setIsPinned(false);
+      } else {
+        // Pin
+        if (post.is_repost) {
+          await repostApi.pinRepost(user.id, post.id);
+        } else {
+          await postApi.pinPost(user.id, post.id);
+        }
+        setIsPinned(true);
+      }
+      onUpdate?.();
+    } catch (error) {
+      console.error('Failed to toggle pin:', error);
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   // Check if current user is the post owner
   const isOwnPost = user && post.user_id === user.id;
+
+  // Check if current user is the reposter (for reposted posts)
+  const isOwnRepost = post.is_repost && user && post.reposted_by_user_id === user.id;
+
+  // Show pin option if user owns the post OR owns the repost
+  const showPinOption = isOwnPost || isOwnRepost;
 
   return (
     <Paper
@@ -265,6 +304,28 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
+      {/* Pinned Header */}
+      {isPinned && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 1,
+            ml: 5,
+            color: "text.secondary",
+          }}
+        >
+          <PushPin sx={{ fontSize: 16 }} />
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontSize: "0.875rem", fontWeight: "bold" }}
+          >
+            固定されたポスト
+          </Typography>
+        </Box>
+      )}
+
       {/* Repost Header */}
       {post.is_repost && post.reposted_by_username && (
         <Box
@@ -632,6 +693,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         onClose={() => setMenuOpen(false)}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onPin={handlePin}
+        isPinned={isPinned}
+        showPinOption={showPinOption}
       />
 
       {/* Delete Confirmation Dialog */}

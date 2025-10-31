@@ -157,6 +157,33 @@ PUT /api/posts/:id
 DELETE /api/posts/:id
 ```
 
+### 10. 投稿をピン留め
+```
+POST /api/posts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 11. 投稿のピン留め解除
+```
+DELETE /api/posts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 12. ユーザーのピン留め投稿取得
+```
+GET /api/users/:userId/pinned-post?current_user_id=current-user-uuid
+```
+
 ---
 
 ## いいねAPI

@@ -22,6 +22,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import Link from "next/link";
 import ImageModal from "@/components/common/ImageModal";
+import VideoPlayer from "@/components/common/VideoPlayer";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
 import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
@@ -541,6 +542,19 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   />
                 </Box>
               ))}
+            </Box>
+          )}
+
+          {/* Video */}
+          {post.video_url && (
+            <Box sx={{ mt: 2, maxWidth: "100%" }}>
+              <VideoPlayer
+                videoUrl={post.video_url}
+                autoPlay={true}
+                muted={true}
+                showDuration={true}
+                duration={post.video_duration || undefined}
+              />
             </Box>
           )}
 

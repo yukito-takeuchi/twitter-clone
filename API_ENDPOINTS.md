@@ -93,12 +93,35 @@ DELETE /api/profiles/:userId
 ```
 POST /api/posts
 ```
-**Body**:
+**Body（画像付き投稿）**:
 ```json
 {
   "user_id": "user-uuid-here",
   "content": "Hello, Twitter!",
   "image_url": "https://example.com/image.jpg"
+}
+```
+
+**Body（動画付き投稿）**:
+```json
+{
+  "user_id": "user-uuid-here",
+  "content": "Check out this video!",
+  "video_url": "/uploads/video.mp4",
+  "video_thumbnail_url": "/uploads/video_thumb.jpg",
+  "video_duration": 45
+}
+```
+
+**注意**: 画像と動画は同時に投稿できません（排他制御）
+
+**引用RT（Quote Retweet）の場合**:
+```json
+{
+  "user_id": "user-uuid-here",
+  "content": "Great post!",
+  "quoted_post_id": "post-uuid-here",
+  "image_url": "optional-image-url"
 }
 ```
 
@@ -262,6 +285,109 @@ GET /api/follows/check/:followerId/:followingId
 
 ---
 
+## 画像API
+
+### 1. 画像アップロード（単一）
+```
+POST /api/images/upload
+```
+**Form Data**:
+- `image`: 画像ファイル (max 5MB)
+- `user_id`: ユーザーID
+
+**レスポンス**:
+```json
+{
+  "image": {
+    "id": "image-uuid",
+    "user_id": "user-uuid",
+    "url": "/uploads/filename.jpg",
+    "file_name": "filename.jpg",
+    "file_size": 123456,
+    "mime_type": "image/jpeg",
+    "storage_type": "local",
+    "created_at": "2025-11-01T00:00:00.000Z"
+  },
+  "url": "/uploads/filename.jpg"
+}
+```
+
+### 2. 画像アップロード（複数）
+```
+POST /api/images/upload-multiple
+```
+**Form Data**:
+- `images`: 画像ファイル配列 (max 4枚、各5MB)
+- `user_id`: ユーザーID
+
+**レスポンス**:
+```json
+{
+  "images": [...],
+  "urls": ["/uploads/file1.jpg", "/uploads/file2.jpg"]
+}
+```
+
+---
+
+## 動画API
+
+### 1. 動画アップロード
+```
+POST /api/videos/upload
+```
+**Form Data**:
+- `video`: 動画ファイル (max 200MB、最大2分)
+- `user_id`: ユーザーID
+
+**レスポンス**:
+```json
+{
+  "video": {
+    "id": "video-uuid",
+    "user_id": "user-uuid",
+    "url": "/uploads/filename.mp4",
+    "thumbnail_url": "/uploads/filename_thumb.jpg",
+    "file_name": "original.mp4",
+    "file_size": 12345678,
+    "mime_type": "video/mp4",
+    "duration": 45,
+    "width": 1920,
+    "height": 1080,
+    "storage_type": "local",
+    "created_at": "2025-11-01T00:00:00.000Z"
+  },
+  "url": "/uploads/filename.mp4",
+  "thumbnail_url": "/uploads/filename_thumb.jpg",
+  "duration": 45.5,
+  "width": 1920,
+  "height": 1080
+}
+```
+
+**対応フォーマット**: mp4, mov, avi, webm, mkv, flv, wmv
+
+**制限**:
+- 最大ファイルサイズ: 200MB
+- 最大再生時間: 2分（120秒）
+
+### 2. 動画取得（ID）
+```
+GET /api/videos/:id
+```
+
+### 3. ユーザーの動画一覧
+```
+GET /api/videos/user/:userId?limit=20&offset=0
+```
+
+### 4. 動画削除
+```
+DELETE /api/videos/:id
+```
+
+---
+
 ## リポストAPI
 
 ### 1. リポスト
@@ -375,6 +501,33 @@ POST /api/follows
 GET /api/posts/timeline/{user_a_id}?limit=20
 ```
 
+### 4. 動画アップロードと投稿
+```bash
+# 1. 動画アップロード
+POST /api/videos/upload
+Form Data:
+  - video: video_file.mp4
+  - user_id: {user_id}
+
+# レスポンス例:
+{
+  "video": {...},
+  "url": "/uploads/abc123.mp4",
+  "thumbnail_url": "/uploads/abc123_thumb.jpg",
+  "duration": 45.5
+}
+
+# 2. 動画付き投稿作成
+POST /api/posts
+{
+  "user_id": "{user_id}",
+  "content": "Check out my video!",
+  "video_url": "/uploads/abc123.mp4",
+  "video_thumbnail_url": "/uploads/abc123_thumb.jpg",
+  "video_duration": 45
+}
+```
+
 ---
 
 ## エラーレスポンス
@@ -384,6 +537,25 @@ GET /api/posts/timeline/{user_a_id}?limit=20
 {
   "status": "error",
   "message": "Invalid email format"
+}
+```
+
+**動画アップロード時のエラー例**:
+```json
+{
+  "error": "Video duration exceeds maximum allowed (2 minutes). Your video is 145 seconds."
+}
+```
+
+```json
+{
+  "error": "Cannot include both image and video in a single post"
+}
+```
+
+```json
+{
+  "error": "Only video files are allowed (mp4, mov, avi, webm, mkv, flv, wmv)"
 }
 ```
 

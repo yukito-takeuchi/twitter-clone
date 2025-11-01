@@ -9,10 +9,12 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
-import { Image as ImageIcon, Close } from "@mui/icons-material";
+import { Image as ImageIcon, Close, VideoLibrary } from "@mui/icons-material";
 import { useAuth } from "@/contexts/AuthContext";
 import { postApi, imageApi } from "@/lib/api";
+import { videoApi } from "@/lib/api/video";
 import QuotedPostCard from "./QuotedPostCard";
+import VideoPreview from "@/components/common/VideoPreview";
 import type { QuotedPost } from "@/types";
 
 interface PostFormProps {
@@ -23,11 +25,19 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
   const [content, setContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoThumbnailUrl, setVideoThumbnailUrl] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [quotedPost, setQuotedPost] = useState<QuotedPost | null>(null);
   const [detectedPostId, setDetectedPostId] = useState<string | null>(null);
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Detect post URL in content
   useEffect(() => {
@@ -93,6 +103,62 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file size (200MB max)
+    if (file.size > 200 * 1024 * 1024) {
+      alert("動画ファイルは200MB以下にしてください");
+      return;
+    }
+
+    // Clear images if video is selected
+    setSelectedFiles([]);
+    setPreviews([]);
+
+    setSelectedVideo(file);
+
+    // Create preview URL
+    const preview = URL.createObjectURL(file);
+    setVideoPreview(preview);
+
+    // Upload video immediately
+    setUploadingVideo(true);
+    setUploadProgress(0);
+
+    try {
+      const response = await videoApi.uploadVideo(file, user.id, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      setVideoUrl(response.url);
+      setVideoThumbnailUrl(response.thumbnail_url || null);
+      setVideoDuration(response.duration);
+    } catch (error: any) {
+      console.error("Failed to upload video:", error);
+      alert(error.response?.data?.error || "動画のアップロードに失敗しました");
+      // Clear video on error
+      setSelectedVideo(null);
+      setVideoPreview(null);
+      if (preview) URL.revokeObjectURL(preview);
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    setSelectedVideo(null);
+    setVideoPreview(null);
+    setVideoUrl(null);
+    setVideoThumbnailUrl(null);
+    setVideoDuration(null);
+    setUploadProgress(0);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !user) return;
@@ -118,12 +184,16 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
         user_id: user.id,
         content: cleanContent,
         image_url: imageUrl,
+        video_url: videoUrl || undefined,
+        video_thumbnail_url: videoThumbnailUrl || undefined,
+        video_duration: videoDuration || undefined,
         quoted_post_id: quotedPost?.id,
       });
 
       setContent("");
       setSelectedFiles([]);
       setPreviews([]);
+      handleRemoveVideo();
       setQuotedPost(null);
       setDetectedPostId(null);
       onPostCreated?.();
@@ -245,6 +315,17 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
               </Box>
             )}
 
+            {/* Video Preview */}
+            {videoPreview && (
+              <VideoPreview
+                videoUrl={videoPreview}
+                onRemove={handleRemoveVideo}
+                uploading={uploadingVideo}
+                uploadProgress={uploadProgress}
+                duration={videoDuration || undefined}
+              />
+            )}
+
             <Box
               sx={{
                 display: "flex",
@@ -254,6 +335,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/* Image input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -262,12 +344,33 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
                   onChange={handleFileSelect}
                   style={{ display: "none" }}
                 />
+                {/* Video input */}
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoSelect}
+                  style={{ display: "none" }}
+                />
+                {/* Image button - disabled if video is selected */}
                 <IconButton
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={selectedFiles.length >= 4}
-                  sx={{ color: "secondary.main" }}
+                  disabled={selectedFiles.length >= 4 || !!selectedVideo}
+                  sx={{
+                    color: !!selectedVideo ? "action.disabled" : "secondary.main"
+                  }}
                 >
                   <ImageIcon />
+                </IconButton>
+                {/* Video button - disabled if images are selected */}
+                <IconButton
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={selectedFiles.length > 0 || !!selectedVideo}
+                  sx={{
+                    color: selectedFiles.length > 0 || !!selectedVideo ? "action.disabled" : "secondary.main"
+                  }}
+                >
+                  <VideoLibrary />
                 </IconButton>
                 <Box sx={{ color: "text.secondary", fontSize: "14px" }}>
                   {content.length}/280

@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import ImageModal from "@/components/common/ImageModal";
+import VideoPlayer from "@/components/common/VideoPlayer";
 
 interface QuotedPostCardProps {
   quotedPost: QuotedPost;
@@ -198,6 +199,20 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
               />
             </Box>
           ))}
+        </Box>
+      )}
+
+      {/* Video */}
+      {quotedPost.video_url && (
+        <Box sx={{ maxWidth: "100%" }}>
+          <VideoPlayer
+            videoUrl={quotedPost.video_url}
+            autoPlay={false}
+            muted={true}
+            showDuration={true}
+            duration={quotedPost.video_duration || undefined}
+            onClick={(e) => e.stopPropagation()}
+          />
         </Box>
       )}
 

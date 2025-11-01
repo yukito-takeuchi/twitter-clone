@@ -30,6 +30,9 @@ export interface Post {
   user_id: string;
   content: string;
   image_url: string | null;
+  video_url: string | null;
+  video_thumbnail_url: string | null;
+  video_duration: number | null;
   reply_to_id: string | null;
   repost_of_id: string | null;
   quoted_post_id: string | null;
@@ -47,6 +50,9 @@ export interface QuotedPost {
   avatar_url: string | null;
   content: string;
   image_url: string | null;
+  video_url?: string | null;
+  video_thumbnail_url?: string | null;
+  video_duration?: number | null;
   created_at: string;
 }
 
@@ -139,6 +145,9 @@ export interface CreatePostData {
   user_id: string;
   content: string;
   image_url?: string;
+  video_url?: string;
+  video_thumbnail_url?: string;
+  video_duration?: number;
   reply_to_id?: string;
   quoted_post_id?: string;
 }

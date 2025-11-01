@@ -139,6 +139,23 @@ export const postApi = {
     );
     return response.data.data!.replies;
   },
+
+  pinPost: async (userId: string, postId: string): Promise<void> => {
+    await api.post(`/posts/${postId}/pin`, { user_id: userId });
+  },
+
+  unpinPost: async (userId: string, postId: string): Promise<void> => {
+    await api.delete(`/posts/${userId}/${postId}/pin`);
+  },
+
+  getPinnedPost: async (userId: string, currentUserId?: string): Promise<PostWithStats | null> => {
+    const params = new URLSearchParams();
+    if (currentUserId) params.append('current_user_id', currentUserId);
+    const response = await api.get<ApiResponse<{ pinnedPost: PostWithStats | null }>>(
+      `/users/${userId}/pinned-post${params.toString() ? `?${params.toString()}` : ''}`
+    );
+    return response.data.data!.pinnedPost;
+  },
 };
 
 // Like API
@@ -209,6 +226,23 @@ export const repostApi = {
       `/reposts/user/${userId}?${params.toString()}`
     );
     return response.data.data!.posts;
+  },
+
+  pinRepost: async (userId: string, postId: string): Promise<void> => {
+    await api.post(`/reposts/${postId}/pin`, { user_id: userId });
+  },
+
+  unpinRepost: async (userId: string, postId: string): Promise<void> => {
+    await api.delete(`/reposts/${userId}/${postId}/pin`);
+  },
+
+  getPinnedRepost: async (userId: string, currentUserId?: string): Promise<PostWithStats | null> => {
+    const params = new URLSearchParams();
+    if (currentUserId) params.append('current_user_id', currentUserId);
+    const response = await api.get<ApiResponse<{ pinnedRepost: PostWithStats | null }>>(
+      `/users/${userId}/pinned-repost${params.toString() ? `?${params.toString()}` : ''}`
+    );
+    return response.data.data!.pinnedRepost;
   },
 };
 

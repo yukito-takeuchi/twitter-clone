@@ -80,7 +80,7 @@ export const validateCreatePost = (
   next: NextFunction
 ) => {
   try {
-    const { user_id, content } = req.body;
+    const { user_id, content, image_url, video_url } = req.body;
 
     validateRequired(user_id, "user_id");
     validateRequired(content, "content");
@@ -95,6 +95,11 @@ export const validateCreatePost = (
 
     if (content.trim().length === 0) {
       throw new AppError("Content cannot be empty", 400);
+    }
+
+    // Validate that image_url and video_url are not both present
+    if (image_url && video_url) {
+      throw new AppError("Cannot include both image and video in a single post", 400);
     }
 
     next();

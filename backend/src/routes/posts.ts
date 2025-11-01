@@ -38,4 +38,10 @@ router.put("/:id", validateUpdatePost, postController.updatePost);
 // Delete post
 router.delete("/:id", postController.deletePost);
 
+// Pin post to profile
+router.post("/:postId/pin", postController.pinPost);
+
+// Unpin post from profile
+router.delete("/:userId/:postId/pin", postController.unpinPost);
+
 export default router;

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { userController } from "../controllers/userController";
+import { postController } from "../controllers/postController";
+import { repostController } from "../controllers/repostController";
 import {
   validateCreateUser,
   validateUpdateUser,
@@ -22,6 +24,12 @@ router.get("/firebase/:firebase_uid", userController.getUserByFirebaseUid);
 
 // Get user by username
 router.get("/username/:username", userController.getUserByUsername);
+
+// Get pinned post for a user (must be before /:id route)
+router.get("/:userId/pinned-post", postController.getPinnedPost);
+
+// Get pinned repost for a user (must be before /:id route)
+router.get("/:userId/pinned-repost", repostController.getPinnedRepost);
 
 // Get user by ID
 router.get("/:id", userController.getUserById);

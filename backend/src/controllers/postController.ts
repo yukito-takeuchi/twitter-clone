@@ -314,4 +314,200 @@ export const postController = {
       },
     });
   }),
+
+  /**
+   * Pin a post to user's profile
+   * POST /api/posts/:postId/pin
+   */
+  pinPost: asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { user_id } = req.body;
+
+    console.log('[pinPost] Request:', { postId, user_id, body: req.body, params: req.params });
+
+    if (!user_id) {
+      res.status(400).json({
+        status: "error",
+        message: "user_id is required in request body",
+        received: { postId, user_id },
+      });
+      return;
+    }
+
+    if (!postId) {
+      res.status(400).json({
+        status: "error",
+        message: "postId is required in URL parameter",
+        received: { postId, user_id },
+      });
+      return;
+    }
+
+    // Check if user exists
+    const user = await UserModel.findById(user_id);
+    if (!user) {
+      res.status(404).json({
+        status: "error",
+        message: "User not found",
+        details: { user_id },
+      });
+      return;
+    }
+
+    // Check if post exists
+    const post = await PostModel.findById(postId);
+    if (!post) {
+      res.status(404).json({
+        status: "error",
+        message: "Post not found",
+        details: { postId },
+      });
+      return;
+    }
+
+    // Check if user owns the post
+    if (post.user_id !== user_id) {
+      res.status(403).json({
+        status: "error",
+        message: "You can only pin your own posts",
+        details: { post_owner: post.user_id, requesting_user: user_id },
+      });
+      return;
+    }
+
+    const success = await PostModel.pinPost(user_id, postId);
+
+    if (!success) {
+      res.status(500).json({
+        status: "error",
+        message: "Failed to pin post due to database error",
+        details: { user_id, postId },
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Post pinned successfully",
+      data: { user_id, postId },
+    });
+  }),
+
+  /**
+   * Unpin a post from user's profile
+   * DELETE /api/posts/:userId/:postId/pin
+   */
+  unpinPost: asyncHandler(async (req: Request, res: Response) => {
+    const { userId, postId } = req.params;
+
+    console.log('[unpinPost] Request:', { userId, postId, params: req.params });
+
+    if (!userId) {
+      res.status(400).json({
+        status: "error",
+        message: "userId is required in URL parameter",
+        received: { userId, postId },
+      });
+      return;
+    }
+
+    if (!postId) {
+      res.status(400).json({
+        status: "error",
+        message: "postId is required in URL parameter",
+        received: { userId, postId },
+      });
+      return;
+    }
+
+    // Check if user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        status: "error",
+        message: "User not found",
+        details: { userId },
+      });
+      return;
+    }
+
+    // Check if post exists
+    const post = await PostModel.findById(postId);
+    if (!post) {
+      res.status(404).json({
+        status: "error",
+        message: "Post not found",
+        details: { postId },
+      });
+      return;
+    }
+
+    const success = await PostModel.unpinPost(userId, postId);
+
+    if (!success) {
+      res.status(400).json({
+        status: "error",
+        message: "Failed to unpin post. Post may not be pinned or you may not own it.",
+        details: { userId, postId },
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      message: "Post unpinned successfully",
+      data: { userId, postId },
+    });
+  }),
+
+  /**
+   * Get pinned post for a user
+   * GET /api/users/:userId/pinned-post
+   */
+  getPinnedPost: asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { current_user_id } = req.query;
+
+    console.log('[getPinnedPost] Request:', { userId, current_user_id, params: req.params, query: req.query });
+
+    if (!userId) {
+      res.status(400).json({
+        status: "error",
+        message: "userId is required in URL parameter",
+        received: { userId, current_user_id },
+      });
+      return;
+    }
+
+    // Check if user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        status: "error",
+        message: "User not found",
+        details: { userId },
+      });
+      return;
+    }
+
+    const pinnedPost = await PostModel.getPinnedPost(userId, current_user_id as string);
+
+    if (!pinnedPost) {
+      res.json({
+        status: "success",
+        data: {
+          pinnedPost: null,
+        },
+        message: "No pinned post found for this user",
+      });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      data: {
+        pinnedPost,
+      },
+    });
+  }),
 };

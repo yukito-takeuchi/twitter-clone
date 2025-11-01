@@ -643,4 +643,126 @@ export class PostModel {
     );
     return result.rows;
   }
+
+  // Pin a post to user's profile
+  static async pinPost(userId: string, postId: string): Promise<boolean> {
+    try {
+      // Start transaction
+      await query("BEGIN");
+
+      // Verify post ownership
+      const postCheck = await query(
+        `SELECT user_id FROM posts WHERE id = $1 AND is_deleted = false`,
+        [postId]
+      );
+
+      if (postCheck.rows.length === 0) {
+        await query("ROLLBACK");
+        return false;
+      }
+
+      if (postCheck.rows[0].user_id !== userId) {
+        await query("ROLLBACK");
+        return false;
+      }
+
+      // Unpin any existing pinned post for this user
+      await query(
+        `UPDATE posts SET is_pinned = false, pinned_at = NULL WHERE user_id = $1 AND is_pinned = true`,
+        [userId]
+      );
+
+      // Unpin any existing pinned repost for this user
+      await query(
+        `UPDATE reposts SET is_pinned = false, pinned_at = NULL WHERE user_id = $1 AND is_pinned = true`,
+        [userId]
+      );
+
+      // Pin the specified post
+      const result = await query(
+        `UPDATE posts SET is_pinned = true, pinned_at = NOW() WHERE id = $1 AND user_id = $2`,
+        [postId, userId]
+      );
+
+      await query("COMMIT");
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      await query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  // Unpin a post from user's profile
+  static async unpinPost(userId: string, postId: string): Promise<boolean> {
+    const result = await query(
+      `UPDATE posts SET is_pinned = false, pinned_at = NULL WHERE id = $1 AND user_id = $2`,
+      [postId, userId]
+    );
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Get pinned post for a user
+  static async getPinnedPost(userId: string, currentUserId?: string): Promise<PostWithStats | null> {
+    const result = await query(
+      `SELECT
+        p.*,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_liked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_bookmarked_by_current_user,
+        CASE
+          WHEN $2::uuid IS NOT NULL THEN EXISTS(
+            SELECT 1 FROM reposts WHERE post_id = p.id AND user_id = $2
+          )
+          ELSE false
+        END as is_reposted_by_current_user,
+        -- Quoted post information
+        qp.id as quoted_post_id_info,
+        qp.user_id as quoted_post_user_id,
+        qu.username as quoted_post_username,
+        qu.display_name as quoted_post_display_name,
+        qpr.avatar_url as quoted_post_avatar_url,
+        qp.content as quoted_post_content,
+        qp.image_url as quoted_post_image_url,
+        qp.created_at as quoted_post_created_at
+       FROM posts_with_stats p
+       LEFT JOIN posts qp ON p.quoted_post_id = qp.id AND qp.is_deleted = false
+       LEFT JOIN users qu ON qp.user_id = qu.id
+       LEFT JOIN profiles qpr ON qu.id = qpr.user_id
+       WHERE p.user_id = $1 AND p.is_pinned = true AND p.is_deleted = false
+       LIMIT 1`,
+      [userId, currentUserId || null]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    const post: PostWithStats = { ...row };
+
+    // Format quoted post if present
+    if (row.quoted_post_id_info) {
+      post.quoted_post = {
+        id: row.quoted_post_id_info,
+        user_id: row.quoted_post_user_id,
+        username: row.quoted_post_username,
+        display_name: row.quoted_post_display_name,
+        avatar_url: row.quoted_post_avatar_url,
+        content: row.quoted_post_content,
+        image_url: row.quoted_post_image_url,
+        created_at: row.quoted_post_created_at,
+      };
+    }
+
+    return post;
+  }
 }

@@ -157,6 +157,27 @@ PUT /api/posts/:id
 DELETE /api/posts/:id
 ```
 
+### 10. 投稿をピン留め
+```
+POST /api/posts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 11. 投稿のピン留め解除
+```
+DELETE /api/posts/:userId/:postId/pin
+```
+
+### 12. ユーザーのピン留め投稿取得
+```
+GET /api/users/:userId/pinned-post?current_user_id=current-user-uuid
+```
+
 ---
 
 ## いいねAPI
@@ -237,6 +258,63 @@ GET /api/follows/suggestions/:userId?limit=10
 ### 7. フォロー確認
 ```
 GET /api/follows/check/:followerId/:followingId
+```
+
+---
+
+## リポストAPI
+
+### 1. リポスト
+```
+POST /api/reposts
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here",
+  "post_id": "post-uuid-here"
+}
+```
+
+### 2. リポスト解除
+```
+DELETE /api/reposts/:userId/:postId
+```
+
+### 3. 投稿をリポストしたユーザー一覧
+```
+GET /api/reposts/post/:postId?limit=20&offset=0
+```
+
+### 4. ユーザーがリポストした投稿一覧
+```
+GET /api/reposts/user/:userId?limit=20&offset=0
+```
+
+### 5. リポスト確認
+```
+GET /api/reposts/check/:userId/:postId
+```
+
+### 6. リポストをピン留め
+```
+POST /api/reposts/:postId/pin
+```
+**Body**:
+```json
+{
+  "user_id": "user-uuid-here"
+}
+```
+
+### 7. リポストのピン留め解除
+```
+DELETE /api/reposts/:userId/:postId/pin
+```
+
+### 8. ユーザーのピン留めリポスト取得
+```
+GET /api/users/:userId/pinned-repost?current_user_id=current-user-uuid
 ```
 
 ---

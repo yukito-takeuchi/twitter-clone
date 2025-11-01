@@ -81,7 +81,14 @@ export default function MessageThread({
   useEffect(() => {
     const handleNewMessage = (message: SocketMessageReceive) => {
       if (message.conversation_id === conversation.id) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          // Prevent duplicates - check if message ID already exists
+          const isDuplicate = prev.some(m => m.id === message.id);
+          if (isDuplicate) {
+            return prev;
+          }
+          return [...prev, message];
+        });
       }
     };
 

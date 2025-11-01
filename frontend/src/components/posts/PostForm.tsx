@@ -134,7 +134,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
 
       setVideoUrl(response.url);
       setVideoThumbnailUrl(response.thumbnail_url || null);
-      setVideoDuration(response.duration);
+      setVideoDuration(Math.round(response.duration));
     } catch (error: any) {
       console.error("Failed to upload video:", error);
       alert(error.response?.data?.error || "動画のアップロードに失敗しました");

@@ -7,12 +7,14 @@ import { AppError, asyncHandler } from "../middlewares/errorHandler";
 export const postController = {
   // Create a new post
   createPost: asyncHandler(async (req: Request, res: Response) => {
-    const { user_id, content, image_url, reply_to_id, repost_of_id, quoted_post_id } = req.body;
+    const { user_id, content, image_url, video_url, video_thumbnail_url, video_duration, reply_to_id, repost_of_id, quoted_post_id } = req.body;
 
     console.log('[postController] Creating post:', {
       user_id,
       user_id_type: typeof user_id,
       content: content?.substring(0, 20),
+      has_image: !!image_url,
+      has_video: !!video_url,
       quoted_post_id,
       body: req.body,
     });
@@ -51,6 +53,9 @@ export const postController = {
       user_id,
       content,
       image_url,
+      video_url,
+      video_thumbnail_url,
+      video_duration,
       reply_to_id,
       repost_of_id,
       quoted_post_id,

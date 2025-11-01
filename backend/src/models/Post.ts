@@ -5,6 +5,9 @@ export interface Post {
   user_id: string;
   content: string;
   image_url: string | null;
+  video_url: string | null;
+  video_thumbnail_url: string | null;
+  video_duration: number | null;
   reply_to_id: string | null;
   repost_of_id: string | null;
   quoted_post_id: string | null;
@@ -18,6 +21,9 @@ export interface CreatePostInput {
   user_id: string;
   content: string;
   image_url?: string;
+  video_url?: string;
+  video_thumbnail_url?: string;
+  video_duration?: number;
   reply_to_id?: string;
   repost_of_id?: string;
   quoted_post_id?: string;
@@ -26,6 +32,9 @@ export interface CreatePostInput {
 export interface UpdatePostInput {
   content?: string;
   image_url?: string;
+  video_url?: string;
+  video_thumbnail_url?: string;
+  video_duration?: number;
 }
 
 export interface QuotedPost {
@@ -56,13 +65,16 @@ export class PostModel {
   // Create a new post
   static async create(input: CreatePostInput): Promise<Post> {
     const result = await query(
-      `INSERT INTO posts (user_id, content, image_url, reply_to_id, repost_of_id, quoted_post_id)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO posts (user_id, content, image_url, video_url, video_thumbnail_url, video_duration, reply_to_id, repost_of_id, quoted_post_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         input.user_id,
         input.content,
         input.image_url || null,
+        input.video_url || null,
+        input.video_thumbnail_url || null,
+        input.video_duration || null,
         input.reply_to_id || null,
         input.repost_of_id || null,
         input.quoted_post_id || null,

@@ -47,5 +47,6 @@ ENV NODE_ENV=production
 # Expose port (Heroku will set $PORT)
 EXPOSE $PORT
 
-# Start production server
+# Use ENTRYPOINT + CMD to allow heroku run to override commands
+ENTRYPOINT []
 CMD ["npm", "start"]

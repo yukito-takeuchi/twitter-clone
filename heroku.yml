@@ -1,5 +1,9 @@
 build:
   docker:
     web: backend/Dockerfile
+release:
+  image: web
+  command:
+    - node dist/scripts/migrate.js
 run:
   web: npm start

@@ -34,6 +34,25 @@ const runMigrations = async () => {
       executedResult.rows.map((row) => row.filename)
     );
 
+    // Auto-mark 001_initial_schema.sql as executed if users table already exists
+    if (!executedMigrations.has("001_initial_schema.sql")) {
+      try {
+        const usersTableCheck = await pool.query(
+          "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')"
+        );
+        if (usersTableCheck.rows[0].exists) {
+          console.log("\n📋 Users table detected - marking 001_initial_schema.sql as executed");
+          await pool.query(
+            "INSERT INTO migrations (filename) VALUES ($1) ON CONFLICT (filename) DO NOTHING",
+            ["001_initial_schema.sql"]
+          );
+          executedMigrations.add("001_initial_schema.sql");
+        }
+      } catch (error) {
+        console.warn("Warning: Could not check for existing users table:", error);
+      }
+    }
+
     console.log(
       `\n✅ Already executed: ${executedMigrations.size} migrations`
     );

@@ -99,13 +99,15 @@ export default function ProfilePage() {
       setPostsOffset(LIMIT);
       setPostsHasMore((userPosts || []).length >= LIMIT);
 
-      // Extract media posts (posts with images, excluding reposts)
+      // Extract media posts (posts with images or videos, excluding reposts)
       const mediaPosts = userPosts.filter(post => {
         // Exclude reposts entirely
         if (post.is_repost) return false;
 
-        // Only include posts with images in the main content
-        return post.image_url && post.image_url.trim().length > 0;
+        // Include posts with images or videos in the main content
+        const hasImage = post.image_url && post.image_url.trim().length > 0;
+        const hasVideo = post.video_url && post.video_url.trim().length > 0;
+        return hasImage || hasVideo;
       });
       setMedia(mediaPosts);
       setMediaOffset(LIMIT);
@@ -257,10 +259,12 @@ export default function ProfilePage() {
       const morePosts = await postApi.getByUser(user.id, LIMIT, mediaOffset, currentUser?.id);
 
       if (morePosts && morePosts.length > 0) {
-        // Filter for media posts only
+        // Filter for media posts only (images or videos)
         const newMediaPosts = morePosts.filter(post => {
           if (post.is_repost) return false;
-          return post.image_url && post.image_url.trim().length > 0;
+          const hasImage = post.image_url && post.image_url.trim().length > 0;
+          const hasVideo = post.video_url && post.video_url.trim().length > 0;
+          return hasImage || hasVideo;
         });
 
         setMedia(prev => [...prev, ...newMediaPosts]);

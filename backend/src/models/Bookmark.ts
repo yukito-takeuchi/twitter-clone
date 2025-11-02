@@ -84,6 +84,9 @@ export class BookmarkModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM bookmarks b
        JOIN posts_with_stats p ON b.post_id = p.id
@@ -108,6 +111,9 @@ export class BookmarkModel {
           avatar_url: row.quoted_post_avatar_url,
           content: row.quoted_post_content,
           image_url: row.quoted_post_image_url,
+          video_url: row.quoted_post_video_url,
+          video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+          video_duration: row.quoted_post_video_duration,
           created_at: row.quoted_post_created_at,
         };
       }

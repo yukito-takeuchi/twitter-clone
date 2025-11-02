@@ -32,7 +32,7 @@ export const getConversations = async (
   >(`/conversations`, {
     params: { user_id: userId, limit, offset },
   });
-  return response.data.data.conversations;
+  return response.data.data?.conversations || [];
 };
 
 /**
@@ -47,6 +47,9 @@ export const getOrCreateConversation = async (
   >(`/conversations/${otherUserId}`, {
     params: { user_id: currentUserId },
   });
+  if (!response.data.data) {
+    throw new Error('Failed to get or create conversation');
+  }
   return response.data.data;
 };
 

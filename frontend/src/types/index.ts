@@ -36,6 +36,7 @@ export interface Post {
   reply_to_id: string | null;
   repost_of_id: string | null;
   quoted_post_id: string | null;
+  is_pinned: boolean;
   is_deleted: boolean;
   view_count: number;
   created_at: string;

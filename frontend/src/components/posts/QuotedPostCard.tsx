@@ -85,7 +85,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
       }}
     >
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
         <Avatar
           src={
             quotedPost.avatar_url
@@ -130,7 +130,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
           fontSize: "14px",
-          mb: images.length > 0 ? 1 : 0,
+          mb: images.length > 0 || quotedPost.video_url ? 1 : 0,
           overflow: "hidden",
           textOverflow: "ellipsis",
           display: "-webkit-box",

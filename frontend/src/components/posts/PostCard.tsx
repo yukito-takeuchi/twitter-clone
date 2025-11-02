@@ -22,6 +22,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import Link from "next/link";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
 import VideoPlayer from "@/components/common/VideoPlayer";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
 import DeletePostDialog from "@/components/posts/DeletePostDialog";
@@ -64,6 +65,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -554,6 +556,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 muted={true}
                 showDuration={true}
                 duration={post.video_duration || undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVideoModalOpen(true);
+                }}
               />
             </Box>
           )}
@@ -734,6 +740,15 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           initialIndex={selectedImageIndex}
           open={imageModalOpen}
           onClose={() => setImageModalOpen(false)}
+        />
+      )}
+
+      {/* Video Modal */}
+      {post.video_url && (
+        <VideoModal
+          videoUrl={post.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
         />
       )}
 

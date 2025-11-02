@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
 import VideoPlayer from "@/components/common/VideoPlayer";
 
 interface QuotedPostCardProps {
@@ -17,6 +18,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
   const router = useRouter();
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   const formatTime = (dateString: string) => {
     try {
@@ -211,7 +213,10 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
             muted={true}
             showDuration={true}
             duration={quotedPost.video_duration || undefined}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setVideoModalOpen(true);
+            }}
           />
         </Box>
       )}
@@ -223,6 +228,15 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
         initialIndex={selectedImageIndex}
         onClose={() => setImageModalOpen(false)}
       />
+
+      {/* Video Modal */}
+      {quotedPost.video_url && (
+        <VideoModal
+          videoUrl={quotedPost.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
+        />
+      )}
     </Box>
   );
 }

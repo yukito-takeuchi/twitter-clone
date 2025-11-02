@@ -32,6 +32,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import Link from "next/link";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
 import VideoPlayer from "@/components/common/VideoPlayer";
 import PostCard from "@/components/posts/PostCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -69,6 +70,7 @@ export default function PostDetailPage() {
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const [replies, setReplies] = useState<PostWithStats[]>([]);
@@ -543,6 +545,10 @@ export default function PostDetailPage() {
               controls={true}
               showDuration={true}
               duration={post.video_duration || undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                setVideoModalOpen(true);
+              }}
             />
           </Box>
         )}
@@ -795,6 +801,15 @@ export default function PostDetailPage() {
           initialIndex={selectedImageIndex}
           open={imageModalOpen}
           onClose={() => setImageModalOpen(false)}
+        />
+      )}
+
+      {/* Video Modal */}
+      {post?.video_url && (
+        <VideoModal
+          videoUrl={post.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
         />
       )}
 

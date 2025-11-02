@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { PlayArrow } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
 import { PostWithStats } from '@/types';
 import ImageModal from '@/components/common/ImageModal';
+import VideoModal from '@/components/common/VideoModal';
 
 interface MediaGridProps {
   posts: PostWithStats[];
@@ -19,10 +19,11 @@ const formatDuration = (seconds: number): string => {
 };
 
 export default function MediaGrid({ posts }: MediaGridProps) {
-  const router = useRouter();
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string>('');
 
   const getImageUrl = (url: string) => {
     if (url.startsWith('http')) {
@@ -53,8 +54,10 @@ export default function MediaGrid({ posts }: MediaGridProps) {
   };
 
   const handleVideoClick = (post: PostWithStats) => {
-    // Navigate to post detail page
-    router.push(`/post/${post.id}`);
+    if (!post.video_url) return;
+
+    setSelectedVideoUrl(post.video_url);
+    setVideoModalOpen(true);
   };
 
   return (
@@ -189,6 +192,12 @@ export default function MediaGrid({ posts }: MediaGridProps) {
         images={selectedImages}
         initialIndex={selectedIndex}
         onClose={() => setImageModalOpen(false)}
+      />
+
+      <VideoModal
+        open={videoModalOpen}
+        videoUrl={selectedVideoUrl}
+        onClose={() => setVideoModalOpen(false)}
       />
     </>
   );

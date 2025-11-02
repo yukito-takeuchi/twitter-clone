@@ -459,13 +459,6 @@ export default function PostDetailPage() {
           {post.content}
         </Typography>
 
-        {/* Quoted Post */}
-        {post.quoted_post && (
-          <Box sx={{ mb: 2 }}>
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          </Box>
-        )}
-
         {/* Images */}
         {images.length > 0 && (
           <Box

@@ -7,6 +7,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
+import VideoPlayer from "@/components/common/VideoPlayer";
 
 interface QuotedPostCardProps {
   quotedPost: QuotedPost;
@@ -16,6 +18,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
   const router = useRouter();
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   const formatTime = (dateString: string) => {
     try {
@@ -82,7 +85,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
       }}
     >
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
         <Avatar
           src={
             quotedPost.avatar_url
@@ -127,7 +130,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
           fontSize: "14px",
-          mb: images.length > 0 ? 1 : 0,
+          mb: images.length > 0 || quotedPost.video_url ? 1 : 0,
           overflow: "hidden",
           textOverflow: "ellipsis",
           display: "-webkit-box",
@@ -201,6 +204,23 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
         </Box>
       )}
 
+      {/* Video */}
+      {quotedPost.video_url && (
+        <Box sx={{ maxWidth: "100%" }}>
+          <VideoPlayer
+            videoUrl={quotedPost.video_url}
+            autoPlay={true}
+            muted={true}
+            showDuration={true}
+            duration={quotedPost.video_duration || undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              setVideoModalOpen(true);
+            }}
+          />
+        </Box>
+      )}
+
       {/* Image Modal */}
       <ImageModal
         open={imageModalOpen}
@@ -208,6 +228,15 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
         initialIndex={selectedImageIndex}
         onClose={() => setImageModalOpen(false)}
       />
+
+      {/* Video Modal */}
+      {quotedPost.video_url && (
+        <VideoModal
+          videoUrl={quotedPost.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
+        />
+      )}
     </Box>
   );
 }

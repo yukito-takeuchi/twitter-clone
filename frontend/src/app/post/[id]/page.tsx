@@ -32,6 +32,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import Link from "next/link";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
+import VideoPlayer from "@/components/common/VideoPlayer";
 import PostCard from "@/components/posts/PostCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
@@ -68,6 +70,7 @@ export default function PostDetailPage() {
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const [replies, setReplies] = useState<PostWithStats[]>([]);
@@ -456,13 +459,6 @@ export default function PostDetailPage() {
           {post.content}
         </Typography>
 
-        {/* Quoted Post */}
-        {post.quoted_post && (
-          <Box sx={{ mb: 2 }}>
-            <QuotedPostCard quotedPost={post.quoted_post} />
-          </Box>
-        )}
-
         {/* Images */}
         {images.length > 0 && (
           <Box
@@ -529,6 +525,31 @@ export default function PostDetailPage() {
                 />
               </Box>
             ))}
+          </Box>
+        )}
+
+        {/* Video */}
+        {post.video_url && (
+          <Box sx={{ mb: 2, maxWidth: "100%" }}>
+            <VideoPlayer
+              videoUrl={post.video_url}
+              autoPlay={false}
+              muted={false}
+              controls={true}
+              showDuration={true}
+              duration={post.video_duration || undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                setVideoModalOpen(true);
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Quoted Post */}
+        {post.quoted_post && (
+          <Box sx={{ mb: 2 }}>
+            <QuotedPostCard quotedPost={post.quoted_post} />
           </Box>
         )}
 
@@ -773,6 +794,15 @@ export default function PostDetailPage() {
           initialIndex={selectedImageIndex}
           open={imageModalOpen}
           onClose={() => setImageModalOpen(false)}
+        />
+      )}
+
+      {/* Video Modal */}
+      {post?.video_url && (
+        <VideoModal
+          videoUrl={post.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
         />
       )}
 

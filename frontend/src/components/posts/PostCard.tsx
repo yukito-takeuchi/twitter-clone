@@ -13,14 +13,17 @@ import {
   Bookmark,
   Share,
   MoreHoriz,
+  PushPin,
 } from "@mui/icons-material";
 import { PostWithStats } from "@/types";
-import { likeApi, bookmarkApi, repostApi } from "@/lib/api";
+import { likeApi, bookmarkApi, repostApi, postApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import Link from "next/link";
 import ImageModal from "@/components/common/ImageModal";
+import VideoModal from "@/components/common/VideoModal";
+import VideoPlayer from "@/components/common/VideoPlayer";
 import PostMenuDialog from "@/components/posts/PostMenuDialog";
 import DeletePostDialog from "@/components/posts/DeletePostDialog";
 import EditPostDialog from "@/components/posts/EditPostDialog";
@@ -62,10 +65,14 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(post.is_pinned || false);
+  const [isPinning, setIsPinning] = useState(false);
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -247,8 +254,53 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     onUpdate?.();
   };
 
+  const handlePin = async () => {
+    if (!user || isPinning) return;
+
+    setIsPinning(true);
+    try {
+      if (isPinned) {
+        // Unpin
+        if (post.is_repost) {
+          await repostApi.unpinRepost(user.id, post.id);
+        } else {
+          await postApi.unpinPost(user.id, post.id);
+        }
+        setIsPinned(false);
+      } else {
+        // Pin
+        if (post.is_repost) {
+          await repostApi.pinRepost(user.id, post.id);
+        } else {
+          await postApi.pinPost(user.id, post.id);
+        }
+        setIsPinned(true);
+      }
+      onUpdate?.();
+    } catch (error) {
+      console.error('Failed to toggle pin:', error);
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   // Check if current user is the post owner
   const isOwnPost = user && post.user_id === user.id;
+
+  // Check if current user is the reposter (for reposted posts)
+  const isOwnRepost = post.is_repost && user && post.reposted_by_user_id === user.id;
+
+  // Show pin option if user owns the post OR owns the repost
+  const showPinOption = isOwnPost || isOwnRepost;
+
+  // Check if content has more than 15 lines
+  const contentLines = post.content?.split('\n') || [];
+  const hasLongContent = contentLines.length > 15;
+
+  // Display content (truncated or full)
+  const displayContent = hasLongContent && !isTextExpanded
+    ? contentLines.slice(0, 15).join('\n')
+    : post.content;
 
   return (
     <Paper
@@ -265,6 +317,28 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
+      {/* Pinned Header */}
+      {isPinned && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 1,
+            ml: 5,
+            color: "text.secondary",
+          }}
+        >
+          <PushPin sx={{ fontSize: 16 }} />
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontSize: "0.875rem", fontWeight: "bold" }}
+          >
+            固定されたポスト
+          </Typography>
+        </Box>
+      )}
+
       {/* Repost Header */}
       {post.is_repost && post.reposted_by_username && (
         <Box
@@ -365,17 +439,43 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </Box>
 
           {/* Post Content */}
-          <Typography
-            variant="body1"
-            sx={{
-              color: "text.primary",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              mb: 1,
-            }}
-          >
-            {post.content}
-          </Typography>
+          <Box>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.primary",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontSize: "15px",
+                lineHeight: 1.3,
+                mb: hasLongContent && !isTextExpanded ? 0 : 1,
+              }}
+            >
+              {displayContent}
+            </Typography>
+
+            {/* Show More Button */}
+            {hasLongContent && !isTextExpanded && (
+              <Typography
+                variant="body2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTextExpanded(true);
+                }}
+                sx={{
+                  color: "primary.main",
+                  cursor: "pointer",
+                  fontSize: "15px",
+                  mb: 1,
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                さらに表示
+              </Typography>
+            )}
+          </Box>
 
           {/* Images */}
           {images.length > 0 && (
@@ -444,6 +544,23 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   />
                 </Box>
               ))}
+            </Box>
+          )}
+
+          {/* Video */}
+          {post.video_url && (
+            <Box sx={{ mt: 2, maxWidth: "100%" }}>
+              <VideoPlayer
+                videoUrl={post.video_url}
+                autoPlay={true}
+                muted={true}
+                showDuration={true}
+                duration={post.video_duration || undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVideoModalOpen(true);
+                }}
+              />
             </Box>
           )}
 
@@ -626,12 +743,24 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         />
       )}
 
+      {/* Video Modal */}
+      {post.video_url && (
+        <VideoModal
+          videoUrl={post.video_url}
+          open={videoModalOpen}
+          onClose={() => setVideoModalOpen(false)}
+        />
+      )}
+
       {/* Post Menu Dialog */}
       <PostMenuDialog
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onPin={handlePin}
+        isPinned={isPinned}
+        showPinOption={showPinOption}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -209,7 +209,7 @@ export default function QuotedPostCard({ quotedPost }: QuotedPostCardProps) {
         <Box sx={{ maxWidth: "100%" }}>
           <VideoPlayer
             videoUrl={quotedPost.video_url}
-            autoPlay={false}
+            autoPlay={true}
             muted={true}
             showDuration={true}
             duration={quotedPost.video_duration || undefined}

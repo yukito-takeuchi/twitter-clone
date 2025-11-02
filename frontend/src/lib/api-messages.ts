@@ -32,7 +32,7 @@ export const getConversations = async (
   >(`/conversations`, {
     params: { user_id: userId, limit, offset },
   });
-  return response.data.data.conversations;
+  return response.data.data?.conversations || [];
 };
 
 /**
@@ -47,6 +47,9 @@ export const getOrCreateConversation = async (
   >(`/conversations/${otherUserId}`, {
     params: { user_id: currentUserId },
   });
+  if (!response.data.data) {
+    throw new Error('Failed to get or create conversation');
+  }
   return response.data.data;
 };
 
@@ -63,6 +66,9 @@ export const getConversationDetails = async (
       params: { user_id: userId },
     }
   );
+  if (!response.data.data) {
+    throw new Error('Conversation details not found');
+  }
   return response.data.data;
 };
 
@@ -88,7 +94,7 @@ export const getTotalUnreadCount = async (userId: string): Promise<number> => {
       params: { user_id: userId },
     }
   );
-  return response.data.data.total_unread;
+  return response.data.data?.total_unread || 0;
 };
 
 /**
@@ -104,7 +110,7 @@ export const canMessageUser = async (
       params: { user_id: currentUserId },
     }
   );
-  return response.data.data.can_message;
+  return response.data.data?.can_message || false;
 };
 
 // ============================================
@@ -131,7 +137,7 @@ export const getMessages = async (
       before_message_id: beforeMessageId,
     },
   });
-  return response.data.data.messages;
+  return response.data.data?.messages || [];
 };
 
 /**
@@ -144,7 +150,7 @@ export const sendTextMessage = async (
     `/messages`,
     input
   );
-  return response.data.data.message;
+  if (!response.data.data?.message) throw new Error('Message not found'); return response.data.data.message;
 };
 
 /**
@@ -172,6 +178,9 @@ export const sendImageMessage = async (
     },
   });
 
+  if (!response.data.data) {
+    throw new Error('Failed to send message with image');
+  }
   return response.data.data;
 };
 
@@ -194,7 +203,7 @@ export const sharePost = async (
       content: comment,
     }
   );
-  return response.data.data.message;
+  if (!response.data.data?.message) throw new Error('Message not found'); return response.data.data.message;
 };
 
 /**
@@ -218,7 +227,7 @@ export const markAllMessagesAsRead = async (
     `/messages/conversation/${conversationId}/read-all`,
     { user_id: userId }
   );
-  return response.data.data.marked_count;
+  return response.data.data?.marked_count || 0;
 };
 
 /**
@@ -234,7 +243,7 @@ export const getUnreadCount = async (
       params: { user_id: userId },
     }
   );
-  return response.data.data.unread_count;
+  return response.data.data?.unread_count || 0;
 };
 
 /**
@@ -267,7 +276,7 @@ export const searchMessages = async (
       limit,
     },
   });
-  return response.data.data.messages;
+  return response.data.data?.messages || [];
 };
 
 export default api;

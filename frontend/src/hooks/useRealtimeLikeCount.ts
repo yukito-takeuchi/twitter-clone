@@ -49,7 +49,7 @@ export function useRealtimeLikeCount({
       console.log(
         `[useRealtimeLikeCount] Calling API for post ${postId}, userId: ${userId}`
       );
-      const post = await postApi.getById(postId, userId);
+      const post = await postApi.getById(postId, userId || undefined);
       console.log(
         `[useRealtimeLikeCount] API response for post ${postId}:`,
         post

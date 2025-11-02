@@ -285,10 +285,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   // Check if current user is the post owner
-  const isOwnPost = user && post.user_id === user.id;
+  const isOwnPost = !!(user && post.user_id === user.id);
 
   // Check if current user is the reposter (for reposted posts)
-  const isOwnRepost = post.is_repost && user && post.reposted_by_user_id === user.id;
+  const isOwnRepost = !!(post.is_repost && user && post.reposted_by_user_id === user.id);
 
   // Show pin option if user owns the post OR owns the repost
   const showPinOption = isOwnPost || isOwnRepost;

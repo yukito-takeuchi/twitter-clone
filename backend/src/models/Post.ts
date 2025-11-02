@@ -45,6 +45,9 @@ export interface QuotedPost {
   avatar_url: string | null;
   content: string;
   image_url: string | null;
+  video_url: string | null;
+  video_thumbnail_url: string | null;
+  video_duration: number | null;
   created_at: Date;
 }
 
@@ -130,6 +133,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
        LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
@@ -158,6 +164,9 @@ export class PostModel {
         avatar_url: row.quoted_post_avatar_url,
         content: row.quoted_post_content,
         image_url: row.quoted_post_image_url,
+        video_url: row.quoted_post_video_url,
+        video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+        video_duration: row.quoted_post_video_duration,
         created_at: row.quoted_post_created_at,
       };
     }
@@ -202,6 +211,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM (
          -- Original posts by user
@@ -262,6 +274,9 @@ export class PostModel {
           avatar_url: row.quoted_post_avatar_url,
           content: row.quoted_post_content,
           image_url: row.quoted_post_image_url,
+          video_url: row.quoted_post_video_url,
+          video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+          video_duration: row.quoted_post_video_duration,
           created_at: row.quoted_post_created_at,
         };
       }
@@ -306,6 +321,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM posts_with_stats pws
        LEFT JOIN posts qp ON pws.quoted_post_id = qp.id AND qp.is_deleted = false
@@ -334,6 +352,9 @@ export class PostModel {
           avatar_url: row.quoted_post_avatar_url,
           content: row.quoted_post_content,
           image_url: row.quoted_post_image_url,
+          video_url: row.quoted_post_video_url,
+          video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+          video_duration: row.quoted_post_video_duration,
           created_at: row.quoted_post_created_at,
         };
       }
@@ -378,6 +399,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM (
          -- Original posts by followed users
@@ -442,6 +466,9 @@ export class PostModel {
           avatar_url: row.quoted_post_avatar_url,
           content: row.quoted_post_content,
           image_url: row.quoted_post_image_url,
+          video_url: row.quoted_post_video_url,
+          video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+          video_duration: row.quoted_post_video_duration,
           created_at: row.quoted_post_created_at,
         };
       }
@@ -481,6 +508,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM (
          -- Original posts
@@ -539,6 +569,9 @@ export class PostModel {
           avatar_url: row.quoted_post_avatar_url,
           content: row.quoted_post_content,
           image_url: row.quoted_post_image_url,
+          video_url: row.quoted_post_video_url,
+          video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+          video_duration: row.quoted_post_video_duration,
           created_at: row.quoted_post_created_at,
         };
       }
@@ -744,6 +777,9 @@ export class PostModel {
         qpr.avatar_url as quoted_post_avatar_url,
         qp.content as quoted_post_content,
         qp.image_url as quoted_post_image_url,
+        qp.video_url as quoted_post_video_url,
+        qp.video_thumbnail_url as quoted_post_video_thumbnail_url,
+        qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM posts_with_stats p
        LEFT JOIN posts qp ON p.quoted_post_id = qp.id AND qp.is_deleted = false
@@ -776,6 +812,9 @@ export class PostModel {
         avatar_url: row.quoted_post_avatar_url,
         content: row.quoted_post_content,
         image_url: row.quoted_post_image_url,
+        video_url: row.quoted_post_video_url,
+        video_thumbnail_url: row.quoted_post_video_thumbnail_url,
+        video_duration: row.quoted_post_video_duration,
         created_at: row.quoted_post_created_at,
       };
     }

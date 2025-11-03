@@ -156,7 +156,7 @@ export default function VideoPlayer({
         controls={controls}
         style={{
           maxWidth: "100%",
-          maxHeight: "506px",
+          maxHeight: "400px",
           width: "auto",
           height: "auto",
           display: "block",

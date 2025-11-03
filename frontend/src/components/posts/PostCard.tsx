@@ -555,7 +555,7 @@ export default function PostCard({ post, onUpdate, showPinnedBadge = false }: Po
                 position: "relative",
                 mt: 2,
                 width: "100%",
-                maxHeight: "506px", // 16:9 aspect ratio limit (same as images)
+                maxHeight: "400px", // Limit vertical video height
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "divider",

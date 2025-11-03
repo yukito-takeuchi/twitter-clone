@@ -552,13 +552,15 @@ export default function PostCard({ post, onUpdate, showPinnedBadge = false }: Po
           {post.video_url && (
             <Box
               sx={{
+                position: "relative",
                 mt: 2,
-                maxWidth: "100%",
+                width: "100%",
                 maxHeight: "506px", // 16:9 aspect ratio limit (same as images)
-                overflow: "hidden",
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "divider",
+                overflow: "hidden",
+                backgroundColor: "black",
               }}
             >
               <VideoPlayer

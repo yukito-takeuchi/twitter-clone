@@ -137,9 +137,7 @@ export default function VideoPlayer({
       sx={{
         position: "relative",
         width: "100%",
-        borderRadius: 2,
-        overflow: "hidden",
-        backgroundColor: "black",
+        height: "100%",
         cursor: onClick ? "pointer" : "default",
         display: "flex",
         alignItems: "center",
@@ -158,7 +156,7 @@ export default function VideoPlayer({
         controls={controls}
         style={{
           maxWidth: "100%",
-          maxHeight: "100%",
+          maxHeight: "506px",
           width: "auto",
           height: "auto",
           display: "block",

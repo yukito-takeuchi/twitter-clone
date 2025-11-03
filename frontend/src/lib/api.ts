@@ -42,8 +42,8 @@ export const userApi = {
     return response.data.data!;
   },
 
-  getByUsername: async (username: string): Promise<{ user: User; profile: Profile }> => {
-    const response = await api.get<ApiResponse<{ user: User; profile: Profile }>>(
+  getByUsername: async (username: string): Promise<{ user: User; profile: Profile; postCount: number }> => {
+    const response = await api.get<ApiResponse<{ user: User; profile: Profile; postCount: number }>>(
       `/users/username/${username}`
     );
     return response.data.data!;

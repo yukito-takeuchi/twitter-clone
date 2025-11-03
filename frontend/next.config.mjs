@@ -21,6 +21,11 @@ const nextConfig = {
         hostname: "*.herokuapp.com",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/twitter-clone-2/**",
+      },
     ],
   },
 };

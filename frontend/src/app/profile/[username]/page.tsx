@@ -53,6 +53,7 @@ export default function ProfilePage() {
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [totalPostCount, setTotalPostCount] = useState(0);
 
   // Pagination for posts tab
   const [postsLoadingMore, setPostsLoadingMore] = useState(false);
@@ -92,9 +93,15 @@ export default function ProfilePage() {
       const userData = await userApi.getByUsername(username);
       setUser(userData.user);
       setProfile(userData.profile);
+      setTotalPostCount(userData.postCount);
 
       // Fetch user's posts (excluding replies) - initial 10 posts
       const userPosts = await postApi.getByUser(userData.user.id, LIMIT, 0, currentUser?.id);
+      console.log('[Profile fetchUserData] Initial posts:', {
+        count: userPosts?.length,
+        hasMore: (userPosts || []).length >= LIMIT,
+        limit: LIMIT
+      });
       setPosts(userPosts);
       setPostsOffset(LIMIT);
       setPostsHasMore((userPosts || []).length >= LIMIT);
@@ -196,7 +203,18 @@ export default function ProfilePage() {
 
   // Load more posts
   const loadMorePosts = useCallback(async () => {
-    if (!user || postsLoadingMore || !postsHasMore) return;
+    console.log('[Profile loadMorePosts] Called:', {
+      hasUser: !!user,
+      postsLoadingMore,
+      postsHasMore,
+      postsOffset,
+      currentPostsCount: posts.length
+    });
+
+    if (!user || postsLoadingMore || !postsHasMore) {
+      console.log('[Profile loadMorePosts] Early return');
+      return;
+    }
 
     try {
       setPostsLoadingMore(true);
@@ -204,14 +222,18 @@ export default function ProfilePage() {
       // Add 0.5s delay for loading UI
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      console.log('[Profile loadMorePosts] Fetching with offset:', postsOffset);
       const morePosts = await postApi.getByUser(user.id, LIMIT, postsOffset, currentUser?.id);
+      console.log('[Profile loadMorePosts] Received:', morePosts?.length, 'posts');
 
       if (morePosts && morePosts.length > 0) {
         setPosts(prev => [...prev, ...morePosts]);
         setPostsOffset(prev => prev + LIMIT);
         setPostsHasMore(morePosts.length >= LIMIT);
+        console.log('[Profile loadMorePosts] Updated hasMore:', morePosts.length >= LIMIT);
       } else {
         setPostsHasMore(false);
+        console.log('[Profile loadMorePosts] No more posts');
       }
     } catch (error) {
       console.error("Failed to load more posts:", error);
@@ -366,7 +388,7 @@ export default function ProfilePage() {
               {user.display_name || user.username}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {posts.length} ポスト
+              {totalPostCount} ポスト
             </Typography>
           </Box>
         </Box>
@@ -649,6 +671,7 @@ export default function ProfilePage() {
                 key={pinnedPost?.id || pinnedRepost?.id}
                 post={pinnedPost || pinnedRepost!}
                 onUpdate={fetchUserData}
+                showPinnedBadge={true}
               />
             )}
 
@@ -660,27 +683,15 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {posts
-                  .filter(post => {
-                    // Filter out pinned post/repost from regular list
-                    if (pinnedPost && post.id === pinnedPost.id) return false;
-                    if (pinnedRepost && post.id === pinnedRepost.id) return false;
-                    return true;
-                  })
-                  .map((post) => (
-                    <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
-                  ))}
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
+                ))}
 
                 {/* Loading More Indicator */}
                 {postsLoadingMore && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                     <CircularProgress />
                   </Box>
-                )}
-
-                {/* Sentinel Element for Infinite Scroll */}
-                {postsHasMore && !postsLoadingMore && (
-                  <div ref={postsSentinelRef} style={{ height: '20px' }} />
                 )}
 
                 {/* No More Posts Message */}
@@ -693,6 +704,11 @@ export default function ProfilePage() {
                 )}
               </>
             )}
+
+            {/* Sentinel Element for Infinite Scroll - 常に表示 */}
+            {postsHasMore && !postsLoadingMore && (
+              <div ref={postsSentinelRef} style={{ height: '20px' }} />
+            )}
           </>
         )}
         {tabValue === 1 && (
@@ -703,6 +719,7 @@ export default function ProfilePage() {
                 key={pinnedPost?.id || pinnedRepost?.id}
                 post={pinnedPost || pinnedRepost!}
                 onUpdate={fetchUserData}
+                showPinnedBadge={true}
               />
             )}
 
@@ -714,16 +731,9 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {replies
-                  .filter(reply => {
-                    // Filter out pinned post/repost from regular list
-                    if (pinnedPost && reply.id === pinnedPost.id) return false;
-                    if (pinnedRepost && reply.id === pinnedRepost.id) return false;
-                    return true;
-                  })
-                  .map((reply) => (
-                    <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
-                  ))}
+                {replies.map((reply) => (
+                  <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
+                ))}
 
                 {/* Loading More Indicator */}
                 {repliesLoadingMore && (

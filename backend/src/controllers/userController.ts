@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { UserModel } from "../models/User";
 import { ProfileModel } from "../models/Profile";
+import { PostModel } from "../models/Post";
 import { AppError, asyncHandler } from "../middlewares/errorHandler";
 
 export const userController = {
@@ -95,11 +96,15 @@ export const userController = {
     // Get profile
     const profile = await ProfileModel.findByUserId(user.id);
 
+    // Get post count
+    const postCount = await PostModel.countByUser(user.id);
+
     res.json({
       status: "success",
       data: {
         user,
         profile,
+        postCount,
       },
     });
   }),

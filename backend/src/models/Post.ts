@@ -216,7 +216,7 @@ export class PostModel {
         qp.video_duration as quoted_post_video_duration,
         qp.created_at as quoted_post_created_at
        FROM (
-         -- Original posts by user
+         -- Original posts by user (excluding pinned posts)
          SELECT
            pws.*,
            pws.created_at as sort_date,
@@ -230,10 +230,11 @@ export class PostModel {
          WHERE pws.user_id = $1
            AND pws.reply_to_id IS NULL
            AND pws.repost_of_id IS NULL
+           AND pws.is_pinned = false
 
          UNION ALL
 
-         -- Reposts by user
+         -- Reposts by user (excluding pinned reposts)
          SELECT
            p.*,
            r.created_at as sort_date,
@@ -248,6 +249,7 @@ export class PostModel {
          JOIN users ru ON r.user_id = ru.id
          LEFT JOIN profiles rp ON ru.id = rp.user_id
          WHERE r.user_id = $1
+           AND r.is_pinned = false
        ) as user_posts
        LEFT JOIN posts qp ON user_posts.quoted_post_id = qp.id AND qp.is_deleted = false
        LEFT JOIN users qu ON qp.user_id = qu.id
@@ -820,5 +822,28 @@ export class PostModel {
     }
 
     return post;
+  }
+
+  // Count total posts by user (excluding replies, including reposts)
+  static async countByUser(userId: string): Promise<number> {
+    const result = await query(
+      `SELECT COUNT(*) as count FROM (
+        -- Original posts by user (excluding replies and pinned posts)
+        SELECT id FROM posts
+        WHERE user_id = $1
+          AND reply_to_id IS NULL
+          AND repost_of_id IS NULL
+          AND is_deleted = false
+
+        UNION ALL
+
+        -- Reposts by user
+        SELECT r.post_id as id FROM reposts r
+        WHERE r.user_id = $1
+      ) as user_posts`,
+      [userId]
+    );
+
+    return parseInt(result.rows[0]?.count || '0');
   }
 }

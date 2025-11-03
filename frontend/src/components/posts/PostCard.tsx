@@ -35,9 +35,10 @@ import { useRealtimeLikeCount } from "@/hooks/useRealtimeLikeCount";
 interface PostCardProps {
   post: PostWithStats;
   onUpdate?: () => void;
+  showPinnedBadge?: boolean; // プロフィールページでのみtrueにする
 }
 
-export default function PostCard({ post, onUpdate }: PostCardProps) {
+export default function PostCard({ post, onUpdate, showPinnedBadge = false }: PostCardProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(
@@ -317,8 +318,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
-      {/* Pinned Header */}
-      {isPinned && (
+      {/* Pinned Header - プロフィールページでのみ表示 */}
+      {showPinnedBadge && isPinned && (
         <Box
           sx={{
             display: "flex",
@@ -549,7 +550,19 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
           {/* Video */}
           {post.video_url && (
-            <Box sx={{ mt: 2, maxWidth: "100%" }}>
+            <Box
+              sx={{
+                position: "relative",
+                mt: 2,
+                width: "100%",
+                maxHeight: "400px", // Limit vertical video height
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                overflow: "hidden",
+                backgroundColor: "black",
+              }}
+            >
               <VideoPlayer
                 videoUrl={post.video_url}
                 autoPlay={true}

@@ -661,16 +661,9 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {posts
-                  .filter(post => {
-                    // Filter out pinned post/repost from regular list
-                    if (pinnedPost && post.id === pinnedPost.id) return false;
-                    if (pinnedRepost && post.id === pinnedRepost.id) return false;
-                    return true;
-                  })
-                  .map((post) => (
-                    <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
-                  ))}
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} onUpdate={fetchUserData} />
+                ))}
 
                 {/* Loading More Indicator */}
                 {postsLoadingMore && (
@@ -716,16 +709,9 @@ export default function ProfilePage() {
               </Box>
             ) : (
               <>
-                {replies
-                  .filter(reply => {
-                    // Filter out pinned post/repost from regular list
-                    if (pinnedPost && reply.id === pinnedPost.id) return false;
-                    if (pinnedRepost && reply.id === pinnedRepost.id) return false;
-                    return true;
-                  })
-                  .map((reply) => (
-                    <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
-                  ))}
+                {replies.map((reply) => (
+                  <PostCard key={reply.id} post={reply} onUpdate={fetchUserData} />
+                ))}
 
                 {/* Loading More Indicator */}
                 {repliesLoadingMore && (

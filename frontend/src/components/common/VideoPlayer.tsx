@@ -155,8 +155,10 @@ export default function VideoPlayer({
         controls={controls}
         style={{
           width: "100%",
-          height: "100%",
+          height: "auto",
+          maxHeight: "100%",
           display: "block",
+          objectFit: "contain",
         }}
       />
 

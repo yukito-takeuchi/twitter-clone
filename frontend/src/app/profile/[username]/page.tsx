@@ -53,6 +53,7 @@ export default function ProfilePage() {
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [totalPostCount, setTotalPostCount] = useState(0);
 
   // Pagination for posts tab
   const [postsLoadingMore, setPostsLoadingMore] = useState(false);
@@ -92,6 +93,7 @@ export default function ProfilePage() {
       const userData = await userApi.getByUsername(username);
       setUser(userData.user);
       setProfile(userData.profile);
+      setTotalPostCount(userData.postCount);
 
       // Fetch user's posts (excluding replies) - initial 10 posts
       const userPosts = await postApi.getByUser(userData.user.id, LIMIT, 0, currentUser?.id);
@@ -386,7 +388,7 @@ export default function ProfilePage() {
               {user.display_name || user.username}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {posts.length} ポスト
+              {totalPostCount} ポスト
             </Typography>
           </Box>
         </Box>

@@ -823,4 +823,27 @@ export class PostModel {
 
     return post;
   }
+
+  // Count total posts by user (excluding replies, including reposts)
+  static async countByUser(userId: string): Promise<number> {
+    const result = await query(
+      `SELECT COUNT(*) as count FROM (
+        -- Original posts by user (excluding replies and pinned posts)
+        SELECT id FROM posts
+        WHERE user_id = $1
+          AND reply_to_id IS NULL
+          AND repost_of_id IS NULL
+          AND is_deleted = false
+
+        UNION ALL
+
+        -- Reposts by user
+        SELECT r.post_id as id FROM reposts r
+        WHERE r.user_id = $1
+      ) as user_posts`,
+      [userId]
+    );
+
+    return parseInt(result.rows[0]?.count || '0');
+  }
 }

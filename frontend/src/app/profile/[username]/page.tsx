@@ -95,6 +95,11 @@ export default function ProfilePage() {
 
       // Fetch user's posts (excluding replies) - initial 10 posts
       const userPosts = await postApi.getByUser(userData.user.id, LIMIT, 0, currentUser?.id);
+      console.log('[Profile fetchUserData] Initial posts:', {
+        count: userPosts?.length,
+        hasMore: (userPosts || []).length >= LIMIT,
+        limit: LIMIT
+      });
       setPosts(userPosts);
       setPostsOffset(LIMIT);
       setPostsHasMore((userPosts || []).length >= LIMIT);
@@ -196,7 +201,18 @@ export default function ProfilePage() {
 
   // Load more posts
   const loadMorePosts = useCallback(async () => {
-    if (!user || postsLoadingMore || !postsHasMore) return;
+    console.log('[Profile loadMorePosts] Called:', {
+      hasUser: !!user,
+      postsLoadingMore,
+      postsHasMore,
+      postsOffset,
+      currentPostsCount: posts.length
+    });
+
+    if (!user || postsLoadingMore || !postsHasMore) {
+      console.log('[Profile loadMorePosts] Early return');
+      return;
+    }
 
     try {
       setPostsLoadingMore(true);
@@ -204,14 +220,18 @@ export default function ProfilePage() {
       // Add 0.5s delay for loading UI
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      console.log('[Profile loadMorePosts] Fetching with offset:', postsOffset);
       const morePosts = await postApi.getByUser(user.id, LIMIT, postsOffset, currentUser?.id);
+      console.log('[Profile loadMorePosts] Received:', morePosts?.length, 'posts');
 
       if (morePosts && morePosts.length > 0) {
         setPosts(prev => [...prev, ...morePosts]);
         setPostsOffset(prev => prev + LIMIT);
         setPostsHasMore(morePosts.length >= LIMIT);
+        console.log('[Profile loadMorePosts] Updated hasMore:', morePosts.length >= LIMIT);
       } else {
         setPostsHasMore(false);
+        console.log('[Profile loadMorePosts] No more posts');
       }
     } catch (error) {
       console.error("Failed to load more posts:", error);
@@ -672,11 +692,6 @@ export default function ProfilePage() {
                   </Box>
                 )}
 
-                {/* Sentinel Element for Infinite Scroll */}
-                {postsHasMore && !postsLoadingMore && (
-                  <div ref={postsSentinelRef} style={{ height: '20px' }} />
-                )}
-
                 {/* No More Posts Message */}
                 {!postsHasMore && posts.length > 0 && (
                   <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -686,6 +701,11 @@ export default function ProfilePage() {
                   </Box>
                 )}
               </>
+            )}
+
+            {/* Sentinel Element for Infinite Scroll - 常に表示 */}
+            {postsHasMore && !postsLoadingMore && (
+              <div ref={postsSentinelRef} style={{ height: '20px' }} />
             )}
           </>
         )}

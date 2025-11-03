@@ -649,6 +649,7 @@ export default function ProfilePage() {
                 key={pinnedPost?.id || pinnedRepost?.id}
                 post={pinnedPost || pinnedRepost!}
                 onUpdate={fetchUserData}
+                showPinnedBadge={true}
               />
             )}
 
@@ -703,6 +704,7 @@ export default function ProfilePage() {
                 key={pinnedPost?.id || pinnedRepost?.id}
                 post={pinnedPost || pinnedRepost!}
                 onUpdate={fetchUserData}
+                showPinnedBadge={true}
               />
             )}
 

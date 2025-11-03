@@ -35,9 +35,10 @@ import { useRealtimeLikeCount } from "@/hooks/useRealtimeLikeCount";
 interface PostCardProps {
   post: PostWithStats;
   onUpdate?: () => void;
+  showPinnedBadge?: boolean; // プロフィールページでのみtrueにする
 }
 
-export default function PostCard({ post, onUpdate }: PostCardProps) {
+export default function PostCard({ post, onUpdate, showPinnedBadge = false }: PostCardProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(
@@ -317,8 +318,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         },
       }}
     >
-      {/* Pinned Header */}
-      {isPinned && (
+      {/* Pinned Header - プロフィールページでのみ表示 */}
+      {showPinnedBadge && isPinned && (
         <Box
           sx={{
             display: "flex",

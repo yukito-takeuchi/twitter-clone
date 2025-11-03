@@ -141,6 +141,9 @@ export default function VideoPlayer({
         overflow: "hidden",
         backgroundColor: "black",
         cursor: onClick ? "pointer" : "default",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -154,9 +157,10 @@ export default function VideoPlayer({
         playsInline
         controls={controls}
         style={{
-          width: "100%",
-          height: "auto",
+          maxWidth: "100%",
           maxHeight: "100%",
+          width: "auto",
+          height: "auto",
           display: "block",
           objectFit: "contain",
         }}

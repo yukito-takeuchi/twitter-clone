@@ -18,6 +18,8 @@
 
 ![YouTube Clone Demo](https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/twitter-clone-gif.gif)
 ![YouTube Clone Demo](https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/2025-11-04134829-ezgif.com-video-to-gif-converter.gif)
+![YouTube Clone Demo](https://github.com/yukito-takeuchi/twitter-clone/blob/feature/frontend-setup1/2025-11-04191011-ezgif.com-video-to-gif-converter.gif)
+
 _実際のアプリケーションの動作デモ_
 
 </div>

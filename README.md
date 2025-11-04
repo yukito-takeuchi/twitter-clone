@@ -36,6 +36,35 @@ _実際のアプリケーションの動作デモ_
 - バックエンド: Node.js, Express.js, TypeScript, PostgreSQL, Socket.io
 - インフラ/外部: Docker, Vercel, Heroku, Google Cloud Storage, Firebase Authentication, Datadog, Mailgun
 
+### 技術スタック図解
+
+```mermaid
+flowchart LR
+  subgraph Frontend[Vercel - Frontend]
+    A[Next.js 14\nTypeScript\nMaterial-UI\nTailwind CSS\nSocket.io Client]
+  end
+
+  subgraph Backend[Heroku - Backend]
+    B[Express.js\nNode.js\nTypeScript]
+    DB[(PostgreSQL)]
+  end
+
+  subgraph Services[External Services]
+    GCS[Google Cloud Storage]
+    FB[Firebase Authentication]
+    MG[Mailgun]
+    DD[Datadog]
+  end
+
+  A -->|HTTP/WS| B
+  B --> DB
+  A --> FB
+  B --> FB
+  B --> GCS
+  B --> MG
+  B --> DD
+```
+
 ## ✨ 実装済み機能（要点）
 
 - 認証: Firebase Auth / ログイン・ログアウト / JWT 検証

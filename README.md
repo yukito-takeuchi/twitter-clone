@@ -36,34 +36,75 @@ _実際のアプリケーションの動作デモ_
 - バックエンド: Node.js, Express.js, TypeScript, PostgreSQL, Socket.io
 - インフラ/外部: Docker, Vercel, Heroku, Google Cloud Storage, Firebase Authentication, Datadog, Mailgun
 
-### 技術スタック図解
+---
+
+## 🏗️ アーキテクチャ
 
 ```mermaid
-flowchart LR
-  subgraph Frontend[Vercel - Frontend]
-    A[Next.js 14\nTypeScript\nMaterial-UI\nTailwind CSS\nSocket.io Client]
-  end
+graph TB
+    subgraph "フロントエンド (Vercel)"
+        A[Next.js App]
+        B[TypeScript]
+        C[Material-UI]
+        D[Tailwind CSS]
+    end
 
-  subgraph Backend[Heroku - Backend]
-    B[Express.js\nNode.js\nTypeScript]
-    DB[(PostgreSQL)]
-  end
+    subgraph "バックエンド (Heroku)"
+        E[Express.js API]
+        F[PostgreSQL]
+        G[Firebase Auth]
+        H[Google Cloud Storage]
+    end
 
-  subgraph Services[External Services]
-    GCS[Google Cloud Storage]
-    FB[Firebase Authentication]
-    MG[Mailgun]
-    DD[Datadog]
-  end
+    subgraph "外部サービス"
+        I[Mailgun]
+        J[Datadog]
+    end
 
-  A -->|HTTP/WS| B
-  B --> DB
-  A --> FB
-  B --> FB
-  B --> GCS
-  B --> MG
-  B --> DD
+    A --> E
+    E --> F
+    E --> G
+    E --> H
+    E --> I
+    E --> J
 ```
+
+---
+
+## 🛠️ 技術スタック
+
+### フロントエンド
+
+| 技術             | バージョン | 用途                              |
+| ---------------- | ---------- | --------------------------------- |
+| **Next.js**      | 14.2.1     | SSR/SSG 対応 React フレームワーク |
+| **TypeScript**   | 5.x        | 型安全な JavaScript               |
+| **Material-UI**  | 7.3.4      | コンポーネントライブラリ          |
+| **Tailwind CSS** | 3.4.1      | ユーティリティファースト CSS      |
+| **Firebase**     | 12.4.0     | 認証                              |
+| **Axios**        | 1.12.2     | HTTP クライアント                 |
+
+### バックエンド
+
+| 技術           | バージョン | 用途               |
+| -------------- | ---------- | ------------------ |
+| **Node.js**    | 20.x       | ランタイム環境     |
+| **Express.js** | 5.1.0      | Web フレームワーク |
+| **PostgreSQL** | 16.x       | メインデータベース |
+| **TypeScript** | 5.x        | 型安全な開発       |
+| **Docker**     | Latest     | コンテナ化         |
+
+### インフラストラクチャ
+
+| サービス                 | 用途                                   |
+| ------------------------ | -------------------------------------- |
+| **Vercel**               | フロントエンドホスティング・デプロイ   |
+| **Heroku**               | バックエンドホスティング・データベース |
+| **Google Cloud Storage** | 画像・ファイルストレージ               |
+| **Mailgun**              | メール配信サービス                     |
+| **Datadog**              | アプリケーション監視                   |
+
+---
 
 ## ✨ 実装済み機能（要点）
 

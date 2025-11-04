@@ -116,6 +116,7 @@ export default function ProfilePage() {
         const hasVideo = post.video_url && post.video_url.trim().length > 0;
         return hasImage || hasVideo;
       });
+      // Note: Pinned post will be added after it's fetched
       setMedia(mediaPosts);
       setMediaOffset(LIMIT);
       setMediaHasMore((userPosts || []).length >= LIMIT);
@@ -150,6 +151,15 @@ export default function ProfilePage() {
         ]);
         setPinnedPost(pinned);
         setPinnedRepost(pinnedRepostData);
+
+        // Add pinned post to media if it has image or video
+        if (pinned && !pinned.is_repost) {
+          const hasImage = pinned.image_url && pinned.image_url.trim().length > 0;
+          const hasVideo = pinned.video_url && pinned.video_url.trim().length > 0;
+          if (hasImage || hasVideo) {
+            setMedia(prev => [pinned, ...prev]);
+          }
+        }
       } catch (error) {
         console.error("Failed to fetch pinned posts:", error);
       }

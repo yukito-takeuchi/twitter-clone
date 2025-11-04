@@ -98,19 +98,50 @@ export const uploadVideo = async (req: Request, res: Response) => {
 
     // Generate thumbnail
     let thumbnailUrl: string | undefined;
-    if (!isProduction) {
-      try {
-        const thumbnailFilename = `${path.parse(file.filename).name}_thumb.jpg`;
-        const thumbnailPath = path.join(__dirname, "../../uploads", thumbnailFilename);
+    try {
+      const thumbnailFilename = `${path.parse(file.originalname).name}_thumb.jpg`;
+      const thumbnailPath = path.join(__dirname, "../../uploads", thumbnailFilename);
 
+      if (isProduction) {
+        // For production: generate thumbnail from buffer, then upload to GCS
+        const fs = require('fs');
+        const { uploadToGCS } = require('../config/storage');
+
+        // Create temp directory if it doesn't exist
+        const tempDir = path.join(__dirname, "../../uploads");
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        // Save video buffer temporarily to generate thumbnail
+        const tempVideoPath = path.join(tempDir, `temp_${Date.now()}${path.extname(file.originalname)}`);
+        fs.writeFileSync(tempVideoPath, file.buffer);
+
+        // Generate thumbnail from temporary video file
+        await generateThumbnail(tempVideoPath, thumbnailPath, "00:00:01");
+
+        // Upload thumbnail to GCS
+        const thumbnailBuffer = fs.readFileSync(thumbnailPath);
+        const thumbnailFile = {
+          buffer: thumbnailBuffer,
+          originalname: thumbnailFilename,
+          mimetype: 'image/jpeg'
+        } as Express.Multer.File;
+
+        thumbnailUrl = await uploadToGCS(thumbnailFile, "video-thumbnails");
+
+        // Clean up temporary files
+        fs.unlinkSync(tempVideoPath);
+        fs.unlinkSync(thumbnailPath);
+      } else {
+        // For local development
         await generateThumbnail(videoPath, thumbnailPath, "00:00:01");
         thumbnailUrl = getVideoUrl(thumbnailFilename);
-      } catch (error) {
-        console.error("Error generating thumbnail:", error);
-        // Continue without thumbnail - not critical
       }
+    } catch (error) {
+      console.error("Error generating thumbnail:", error);
+      // Continue without thumbnail - not critical
     }
-    // TODO: For production, generate thumbnail and upload to GCS
 
     // Save video metadata to database
     const videoInput: CreateVideoInput = {
